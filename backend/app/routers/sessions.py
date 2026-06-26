@@ -45,8 +45,19 @@ def list_sessions(
 
 
 @router.get("/{session_id}", response_model=SessionOut)
-def get_session(session_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
-    return _get(db, session_id)
+def get_session(
+    session_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    sess = _get(db, session_id)
+    # parents may only see sessions one of their children attends
+    visible = _visible_student_ids(db, user)
+    if visible is not None and not (
+        db.query(Attendance)
+        .filter(Attendance.session_id == session_id, Attendance.student_id.in_(visible or {-1}))
+        .first()
+    ):
+        raise HTTPException(status_code=404, detail="Session not found")
+    return sess
 
 
 @router.post("", response_model=SessionOut, status_code=201)

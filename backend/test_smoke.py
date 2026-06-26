@@ -45,6 +45,21 @@ def run():
         assert c.get(f"/students/{other['id']}", headers=ph).status_code == 404
         assert c.post("/students", json={"name": "x"}, headers=ph).status_code == 403
 
+        # Session-detail isolation: parent sees a session only if their child attends it
+        s0, s1 = gen[0]["id"], gen[1]["id"]
+        c.post(
+            "/attendance/bulk",
+            json={"session_id": s0, "items": [{"student_id": sid, "status": "present"}]},
+            headers=h,
+        )
+        assert c.get(f"/sessions/{s0}", headers=ph).status_code == 200  # child attends
+        assert c.get(f"/sessions/{s1}", headers=ph).status_code == 404  # child does not
+        assert c.get(f"/sessions/{s1}", headers=h).status_code == 200  # staff sees all
+
+        # Money validation: amounts must be > 0
+        assert c.post("/payments", json={"amount": -50, "method": "cash"}, headers=h).status_code == 422
+        assert c.post("/fees/invoices", json={"student_id": sid, "amount_due": 0}, headers=h).status_code == 422
+
     print("smoke OK")
 
 

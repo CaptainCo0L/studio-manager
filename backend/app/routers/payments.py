@@ -48,8 +48,9 @@ def create_payment(payload: PaymentCreate, db: Session = Depends(get_db), _=Depe
         inv = db.get(FeeInvoice, payload.invoice_id)
         if not inv:
             raise HTTPException(status_code=404, detail="Invoice not found")
-        inv.amount_paid = float(inv.amount_paid) + payload.amount
-        inv.balance = float(inv.amount_due) - float(inv.amount_paid)
+        # Numeric columns load as Decimal; payload.amount is Decimal — keep it exact
+        inv.amount_paid = inv.amount_paid + payload.amount
+        inv.balance = inv.amount_due - inv.amount_paid
         inv.status = "paid" if inv.balance <= 0 else "partial"
         payment.student_id = inv.student_id
         student_id = inv.student_id

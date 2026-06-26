@@ -1,6 +1,7 @@
 from datetime import date, datetime, time
+from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class ORM(BaseModel):
@@ -135,7 +136,7 @@ class AttendanceOut(ORM):
 class FeeStructureCreate(BaseModel):
     batch_id: int
     name: str
-    amount: float
+    amount: Decimal = Field(gt=0)  # Decimal: exact money; gt=0: no negative/zero fees
     period: str = "monthly"
     auto_invoice: bool = False  # invoice all enrolled students
 
@@ -151,7 +152,7 @@ class FeeStructureOut(ORM):
 class InvoiceCreate(BaseModel):
     student_id: int
     fee_structure_id: int | None = None
-    amount_due: float
+    amount_due: Decimal = Field(gt=0)
     due_date: date | None = None
 
 
@@ -169,7 +170,7 @@ class InvoiceOut(ORM):
 
 # ---- Payments ----
 class PaymentCreate(BaseModel):
-    amount: float
+    amount: Decimal = Field(gt=0)
     method: str  # cash|card|upi|bank_transfer|other
     student_id: int | None = None
     invoice_id: int | None = None
