@@ -1,5 +1,7 @@
 # Studio Manager
 
+[![Build & push images](https://github.com/CaptainCo0L/studio-manager/actions/workflows/build.yml/badge.svg)](https://github.com/CaptainCo0L/studio-manager/actions/workflows/build.yml)
+
 Self-hosted management app for an art class — recurring weekly **batches**, ad-hoc
 **drop-ins**, and one-on-one **private lessons** (billed per session).
 
