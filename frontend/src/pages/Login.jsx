@@ -28,10 +28,21 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="card w-full max-w-sm space-y-4">
-        <div>
-          <h1 className="text-xl font-bold text-terracotta">Studio Manager</h1>
-          <p className="text-sm text-ink/60">Sign in to continue</p>
+      <form onSubmit={submit} className="w-full max-w-sm space-y-5 overflow-hidden rounded-xl border border-ink/10 bg-paper p-6 shadow-sm">
+        <div className="pigment-band -mx-6 -mt-6 mb-1" aria-hidden="true">
+          <span className="bg-terracotta" />
+          <span className="bg-ochre" />
+          <span className="bg-sage" />
+          <span className="bg-clay" />
+        </div>
+        <div className="space-y-2">
+          <span className="flex gap-0.5" aria-hidden="true">
+            <span className="h-5 w-2.5 rounded-sm bg-terracotta" />
+            <span className="h-5 w-2.5 rounded-sm bg-sage" />
+            <span className="h-5 w-2.5 rounded-sm bg-ochre" />
+          </span>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-clay">Studio Manager</h1>
+          <p className="text-sm text-muted">Sign in to continue</p>
         </div>
         {error && <div className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
         <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />

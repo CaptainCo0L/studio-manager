@@ -1,4 +1,4 @@
-import { NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -30,15 +30,29 @@ const NAV = [
   { to: "/my-fees", label: "My Fees", roles: ["parent"] },
 ];
 
+// Brand mark: three pigment chips, like paint loaded on a palette.
+function Pigment() {
+  return (
+    <span className="flex gap-0.5" aria-hidden="true">
+      <span className="h-4 w-2 rounded-sm bg-terracotta" />
+      <span className="h-4 w-2 rounded-sm bg-sage" />
+      <span className="h-4 w-2 rounded-sm bg-ochre" />
+    </span>
+  );
+}
+
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const items = NAV.filter((n) => n.roles.includes(user.role));
   return (
     <div className="min-h-screen">
-      <header className="border-b border-ink/10 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <span className="text-lg font-bold text-terracotta">Studio Manager</span>
+      <header className="sticky top-0 z-10 border-b border-ink/10 bg-paper/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+          <Link to="/" className="flex items-center gap-2.5">
+            <Pigment />
+            <span className="font-display text-xl font-semibold tracking-tight text-clay">Studio Manager</span>
+          </Link>
           <nav className="flex flex-wrap gap-1 text-sm">
             {items.map((n) => (
               <NavLink
@@ -46,7 +60,7 @@ function Layout({ children }) {
                 to={n.to}
                 end={n.to === "/"}
                 className={({ isActive }) =>
-                  `rounded px-2 py-1 ${isActive ? "bg-terracotta text-white" : "text-ink/70 hover:bg-ink/5"}`
+                  `rounded-md px-2.5 py-1 font-medium transition-colors ${isActive ? "bg-terracotta text-paper" : "text-muted hover:bg-ink/5 hover:text-ink"}`
                 }
               >
                 {n.label}
@@ -54,7 +68,7 @@ function Layout({ children }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <span className="text-ink/60">{user.email}</span>
+            <span className="hidden text-muted sm:inline">{user.email}</span>
             <button
               className="btn-ghost"
               onClick={() => {
@@ -66,8 +80,14 @@ function Layout({ children }) {
             </button>
           </div>
         </div>
+        <div className="pigment-band" aria-hidden="true">
+          <span className="bg-terracotta" />
+          <span className="bg-ochre" />
+          <span className="bg-sage" />
+          <span className="bg-clay" />
+        </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
     </div>
   );
 }

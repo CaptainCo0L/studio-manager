@@ -3,11 +3,12 @@ import { api } from "../api";
 import { useAuth } from "../auth";
 import { Page, inr, useApi } from "../ui";
 
-function Stat({ label, value }) {
+function Stat({ label, value, accent }) {
   return (
-    <div className="card">
-      <div className="text-sm text-ink/60">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-ink">{value}</div>
+    <div className="card relative overflow-hidden">
+      <span className={`absolute inset-x-0 top-0 h-1 ${accent}`} aria-hidden="true" />
+      <div className="text-sm text-muted">{label}</div>
+      <div className="mt-1 font-display text-3xl font-semibold text-ink">{value}</div>
     </div>
   );
 }
@@ -40,10 +41,10 @@ function StaffDashboard() {
   return (
     <Page title="Dashboard">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Stat label="Students" value={students.data?.length ?? "…"} />
-        <Stat label="Batches" value={batches.data?.length ?? "…"} />
-        <Stat label="Collected" value={fees.data ? inr(fees.data.payments_total) : "…"} />
-        <Stat label="Outstanding" value={fees.data ? inr(fees.data.outstanding) : "…"} />
+        <Stat label="Students" value={students.data?.length ?? "…"} accent="bg-terracotta" />
+        <Stat label="Batches" value={batches.data?.length ?? "…"} accent="bg-sage" />
+        <Stat label="Collected" value={fees.data ? inr(fees.data.payments_total) : "…"} accent="bg-ochre" />
+        <Stat label="Outstanding" value={fees.data ? inr(fees.data.outstanding) : "…"} accent="bg-clay" />
       </div>
       <div className="mt-6 flex flex-wrap gap-2">
         <Link className="btn" to="/sessions">Sessions</Link>

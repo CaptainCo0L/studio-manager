@@ -26,8 +26,8 @@ export function useApi(fn, deps = []) {
 export function Page({ title, actions, children }) {
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-ink">{title}</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">{title}</h1>
         <div className="flex gap-2">{actions}</div>
       </div>
       {children}
@@ -36,15 +36,15 @@ export function Page({ title, actions, children }) {
 }
 
 export function Table({ columns, rows, render, empty = "Nothing here yet." }) {
-  if (!rows?.length) return <div className="card text-sm text-ink/60">{empty}</div>;
+  if (!rows?.length) return <div className="card text-sm text-muted">{empty}</div>;
   return (
     <div className="card overflow-x-auto p-0">
       <table className="min-w-full divide-y divide-ink/10">
-        <thead className="bg-canvas">
+        <thead className="bg-canvas/60">
           <tr>{columns.map((c) => <th key={c} className="th">{c}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-ink/5">
-          {rows.map((r, i) => <tr key={r.id ?? i}>{render(r)}</tr>)}
+          {rows.map((r, i) => <tr key={r.id ?? i} className="transition-colors hover:bg-canvas/40">{render(r)}</tr>)}
         </tbody>
       </table>
     </div>
