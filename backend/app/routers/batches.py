@@ -1,0 +1,72 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..deps import require_staff
+from ..models import Batch, BatchEnrollment, Student
+from ..schemas import BatchCreate, BatchOut, StudentOut
+
+router = APIRouter(prefix="/batches", tags=["batches"])
+
+
+def _with_count(db: Session, batch: Batch) -> BatchOut:
+    count = (
+        db.query(BatchEnrollment)
+        .filter(BatchEnrollment.batch_id == batch.id, BatchEnrollment.is_active.is_(True))
+        .count()
+    )
+    out = BatchOut.model_validate(batch)
+    out.student_count = count
+    return out
+
+
+@router.get("", response_model=list[BatchOut])
+def list_batches(db: Session = Depends(get_db), _=Depends(require_staff)):
+    return [_with_count(db, b) for b in db.query(Batch).order_by(Batch.name).all()]
+
+
+@router.post("", response_model=BatchOut, status_code=201)
+def create_batch(payload: BatchCreate, db: Session = Depends(get_db), _=Depends(require_staff)):
+    batch = Batch(**payload.model_dump())
+    db.add(batch)
+    db.commit()
+    db.refresh(batch)
+    return _with_count(db, batch)
+
+
+@router.put("/{batch_id}", response_model=BatchOut)
+def update_batch(
+    batch_id: int, payload: BatchCreate, db: Session = Depends(get_db), _=Depends(require_staff)
+):
+    batch = _get(db, batch_id)
+    for k, v in payload.model_dump().items():
+        setattr(batch, k, v)
+    db.commit()
+    db.refresh(batch)
+    return _with_count(db, batch)
+
+
+@router.delete("/{batch_id}", status_code=204)
+def delete_batch(batch_id: int, db: Session = Depends(get_db), _=Depends(require_staff)):
+    batch = _get(db, batch_id)
+    db.delete(batch)
+    db.commit()
+
+
+@router.get("/{batch_id}/students", response_model=list[StudentOut])
+def batch_students(batch_id: int, db: Session = Depends(get_db), _=Depends(require_staff)):
+    _get(db, batch_id)
+    return (
+        db.query(Student)
+        .join(BatchEnrollment, BatchEnrollment.student_id == Student.id)
+        .filter(BatchEnrollment.batch_id == batch_id, BatchEnrollment.is_active.is_(True))
+        .order_by(Student.name)
+        .all()
+    )
+
+
+def _get(db: Session, batch_id: int) -> Batch:
+    batch = db.get(Batch, batch_id)
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    return batch
