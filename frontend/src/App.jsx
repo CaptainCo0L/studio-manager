@@ -19,10 +19,13 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
 import MyFees from "./pages/MyFees";
+import TutorSessions from "./pages/TutorSessions";
+import TutorSessionDetail from "./pages/TutorSessionDetail";
+import TutorEarnings from "./pages/TutorEarnings";
 
 // Nav entries with the roles allowed to see them.
 const NAV = [
-  { to: "/", label: "Dashboard", roles: ["admin", "staff", "parent"] },
+  { to: "/", label: "Dashboard", roles: ["admin", "staff", "parent", "tutor"] },
   { to: "/students", label: "Students", roles: ["admin", "staff"] },
   { to: "/batches", label: "Batches", roles: ["admin", "staff"] },
   { to: "/tutors", label: "Tutors", roles: ["admin", "staff"] },
@@ -34,6 +37,8 @@ const NAV = [
   { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
   { to: "/my-fees", label: "My Fees", roles: ["parent"] },
+  { to: "/tutor/sessions", label: "My Sessions", roles: ["tutor"] },
+  { to: "/tutor/earnings", label: "My Earnings", roles: ["tutor"] },
 ];
 
 // Brand mark: three pigment chips, like paint loaded on a palette.
@@ -150,6 +155,9 @@ export default function App() {
       <Route path="/account" element={<Guard><Account /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
       <Route path="/my-fees" element={<Guard roles={["parent"]}><MyFees /></Guard>} />
+      <Route path="/tutor/sessions" element={<Guard roles={["tutor"]}><TutorSessions /></Guard>} />
+      <Route path="/tutor/sessions/:id" element={<Guard roles={["tutor"]}><TutorSessionDetail /></Guard>} />
+      <Route path="/tutor/earnings" element={<Guard roles={["tutor"]}><TutorEarnings /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

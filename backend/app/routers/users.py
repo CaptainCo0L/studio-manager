@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from ..auth import hash_password, verify_password
 from ..database import get_db
 from ..deps import get_current_user, require_admin
-from ..models import ParentLink, User
+from ..models import ParentLink, Tutor, User
 from ..schemas import MeUpdate, PasswordChange, UserCreate, UserOut
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -48,10 +48,22 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)):
 def create_user(
     payload: UserCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)
 ):
-    if payload.role not in ("admin", "staff", "parent"):
+    if payload.role not in ("admin", "staff", "parent", "tutor"):
         raise HTTPException(status_code=400, detail="Invalid role")
     if db.query(User).filter(User.email == payload.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Validate the tutor link up front so we don't create an orphan user.
+    tutor = None
+    if payload.role == "tutor":
+        if not payload.tutor_id:
+            raise HTTPException(status_code=400, detail="tutor_id required for tutor accounts")
+        tutor = db.get(Tutor, payload.tutor_id)
+        if not tutor:
+            raise HTTPException(status_code=400, detail="Tutor not found")
+        if tutor.linked_user_id is not None:
+            raise HTTPException(status_code=400, detail="Tutor already linked to a user")
+
     user = User(
         email=payload.email,
         hashed_password=hash_password(payload.password),
@@ -62,6 +74,8 @@ def create_user(
     if payload.role == "parent":
         for sid in payload.student_ids:
             db.add(ParentLink(parent_user_id=user.id, student_id=sid))
+    if tutor is not None:
+        tutor.linked_user_id = user.id
     db.commit()
     db.refresh(user)
     return user
