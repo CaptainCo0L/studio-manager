@@ -49,7 +49,14 @@ export default function Payments() {
       )}
 
       <Table
-        columns={["#", "Student", "Amount", "Method", "Invoice", "When"]}
+        columns={[
+          { label: "#", sort: (p) => p.id },
+          { label: "Student", sort: (p) => nameOf(p.student_id) },
+          { label: "Amount", sort: (p) => Number(p.amount) },
+          { label: "Method", sort: (p) => p.method },
+          { label: "Invoice", sort: (p) => p.invoice_id ?? p.session_id ?? 0 },
+          { label: "When", sort: (p) => p.created_at },
+        ]}
         rows={list.data || []}
         render={(p) => (
           <>

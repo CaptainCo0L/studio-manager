@@ -7,7 +7,11 @@ export default function MySessions() {
   return (
     <Page title="My Sessions">
       <Table
-        columns={["Date", "Type", "Time"]}
+        columns={[
+          { label: "Date", sort: (s) => s.date },
+          { label: "Type", sort: (s) => s.session_type },
+          { label: "Time", sort: (s) => s.start_time || "" },
+        ]}
         rows={list.data || []}
         empty="No sessions yet."
         render={(s) => (

@@ -126,7 +126,11 @@ export default function StudentDetail() {
         <button className="btn" onClick={enroll}>Enroll</button>
       </div>
       <Table
-        columns={["Batch", "Days", ""]}
+        columns={[
+          { label: "Batch", sort: (b) => b.name },
+          { label: "Days", sort: (b) => b.weekly_days },
+          "",
+        ]}
         rows={enrolled.data || []}
         empty="Not enrolled in any batch."
         render={(b) => (
@@ -143,7 +147,13 @@ export default function StudentDetail() {
 
       <h2 className="mb-2 mt-6 font-semibold">Invoices</h2>
       <Table
-        columns={["Due", "Paid", "Balance", "Status", ""]}
+        columns={[
+          { label: "Due", sort: (i) => Number(i.amount_due) },
+          { label: "Paid", sort: (i) => Number(i.amount_paid) },
+          { label: "Balance", sort: (i) => Number(i.balance) },
+          { label: "Status", sort: (i) => i.status },
+          "",
+        ]}
         rows={invoices.data || []}
         empty="No invoices."
         onRowClick={(i) => navigate(`/fees/invoices/${i.id}`)}

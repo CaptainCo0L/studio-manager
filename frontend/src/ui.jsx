@@ -86,26 +86,103 @@ export function Stagger({ children, step = 40, className = "" }) {
   );
 }
 
-export function Table({ columns, rows, render, empty = "Nothing here yet.", onRowClick }) {
+// Stable comparator for a column's sort accessor. Numbers compare numerically,
+// everything else by localeCompare on the string form.
+function compareBy(sort, dir) {
+  const mul = dir === "desc" ? -1 : 1;
+  return (a, b) => {
+    const va = sort(a.row), vb = sort(b.row);
+    let c;
+    if (typeof va === "number" && typeof vb === "number") c = va - vb;
+    else c = String(va ?? "").localeCompare(String(vb ?? ""));
+    return c !== 0 ? mul * c : a.i - b.i; // original index keeps it stable
+  };
+}
+
+export function Table({ columns, rows, render, empty = "Nothing here yet.", onRowClick, filter }) {
+  // Normalize columns to { label, sort?, align? }.
+  const cols = columns.map((c) => (typeof c === "string" ? { label: c } : c));
+  const anySort = cols.some((c) => c.sort);
+  const showFilter = filter ?? anySort;
+
+  const [sortIdx, setSortIdx] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
+  const [query, setQuery] = useState("");
+
   if (!rows?.length) return <div className="card text-sm text-muted">{empty}</div>;
+
+  // Filter: keep rows whose any sortable column contains the query.
+  const q = query.trim().toLowerCase();
+  let view = rows;
+  if (q) {
+    view = rows.filter((r) =>
+      cols.some((c) => c.sort && String(c.sort(r) ?? "").toLowerCase().includes(q))
+    );
+  }
+  // Sort: decorate with original index for stability, then sort a copy.
+  if (sortIdx != null && cols[sortIdx]?.sort) {
+    view = view
+      .map((row, i) => ({ row, i }))
+      .sort(compareBy(cols[sortIdx].sort, sortDir))
+      .map((d) => d.row);
+  }
+
+  const toggleSort = (i) => {
+    if (sortIdx !== i) { setSortIdx(i); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else setSortIdx(null); // asc → desc → off
+  };
+  const arrow = (i) => (sortIdx !== i ? "↕" : sortDir === "asc" ? "▲" : "▼");
+
   return (
-    <div className="card overflow-x-auto p-0">
-      <table className="min-w-full divide-y divide-ink/10">
-        <thead className="bg-canvas/60">
-          <tr>{columns.map((c) => <th key={c} className="th">{c}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-ink/5">
-          {rows.map((r, i) => (
-            <tr
-              key={r.id ?? i}
-              onClick={onRowClick ? () => onRowClick(r) : undefined}
-              className={`transition-colors hover:bg-canvas/40 ${onRowClick ? "cursor-pointer" : ""}`}
-            >
-              {render(r)}
+    <div>
+      {showFilter && (
+        <input
+          className="input mb-3 max-w-xs"
+          placeholder="Filter…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      )}
+      <div className="card overflow-x-auto p-0">
+        <table className="min-w-full divide-y divide-ink/10">
+          <thead className="bg-canvas/60">
+            <tr>
+              {cols.map((c, i) => (
+                <th key={i} className={`th ${c.align === "right" ? "text-right" : ""}`}>
+                  {c.sort ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSort(i)}
+                      className="inline-flex items-center gap-1 font-semibold uppercase tracking-wider hover:text-ink"
+                    >
+                      {c.label}
+                      <span className={sortIdx === i ? "text-terracotta" : "text-muted/40"}>{arrow(i)}</span>
+                    </button>
+                  ) : (
+                    c.label
+                  )}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-ink/5">
+            {view.length ? (
+              view.map((r, i) => (
+                <tr
+                  key={r.id ?? i}
+                  onClick={onRowClick ? () => onRowClick(r) : undefined}
+                  className={`transition-colors hover:bg-canvas/40 ${onRowClick ? "cursor-pointer" : ""}`}
+                >
+                  {render(r)}
+                </tr>
+              ))
+            ) : (
+              <tr><td colSpan={cols.length} className="td text-muted">No matches.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

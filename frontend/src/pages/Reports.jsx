@@ -30,7 +30,13 @@ export default function Reports() {
 
       <h2 className="mb-2 mt-6 font-semibold">Tutor sessions</h2>
       <Table
-        columns={["Tutor", "Sessions", "Private", "Earnings", "Est. payout"]}
+        columns={[
+          { label: "Tutor", sort: (t) => t.tutor },
+          { label: "Sessions", sort: (t) => t.session_count },
+          { label: "Private", sort: (t) => t.private_sessions },
+          { label: "Earnings", sort: (t) => Number(t.private_earnings) },
+          { label: "Est. payout", sort: (t) => Number(t.estimated_payout) },
+        ]}
         rows={tutors.data || []}
         empty="No tutors."
         render={(t) => (

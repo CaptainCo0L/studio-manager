@@ -48,7 +48,12 @@ export default function Users() {
       )}
 
       <Table
-        columns={["Email", "Role", "Status", ""]}
+        columns={[
+          { label: "Email", sort: (u) => u.email },
+          { label: "Role", sort: (u) => u.role },
+          { label: "Status", sort: (u) => u.is_active },
+          "",
+        ]}
         rows={list.data || []}
         render={(u) => (
           <>
