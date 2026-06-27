@@ -80,6 +80,12 @@ def run():
         finv = c.get(f"/fees/invoices?fee_structure_id={fsid}", headers=h).json()
         assert len(finv) == 1 and finv[0]["fee_structure_id"] == fsid, finv
 
+        # Attendance calendar: scheduled vs marked status + parent isolation
+        cal = c.get(f"/students/{sid}/attendance-calendar", headers=h).json()
+        by_sess = {r["session_id"]: r["status"] for r in cal}
+        assert by_sess.get(s0) == "present" and by_sess.get(s1) is None, cal
+        assert c.get(f"/students/{other['id']}/attendance-calendar", headers=ph).status_code == 404
+
     print("smoke OK")
 
 
