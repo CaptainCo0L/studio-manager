@@ -5,6 +5,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Integer,
     Numeric,
     String,
     Time,
@@ -157,6 +158,17 @@ class StudioSettings(Base):
     address: Mapped[str | None] = mapped_column(String, nullable=True)
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(nullable=True)  # not a FK: keep rows if user deleted
+    user_email: Mapped[str] = mapped_column(String, default="anonymous")
+    method: Mapped[str] = mapped_column(String)
+    path: Mapped[str] = mapped_column(String)
+    status_code: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class Notification(Base):

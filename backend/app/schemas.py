@@ -256,6 +256,16 @@ class SearchOut(BaseModel):
     tutors: list[SearchHit]
 
 
+# ---- Audit ----
+class AuditOut(ORM):
+    id: int
+    user_email: str
+    method: str
+    path: str
+    status_code: int
+    created_at: datetime
+
+
 # ---- Notifications ----
 class NotificationOut(ORM):
     id: int

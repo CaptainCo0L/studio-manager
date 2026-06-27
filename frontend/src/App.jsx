@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import Account from "./pages/Account";
+import Audit from "./pages/Audit";
 import GlobalSearch from "./components/GlobalSearch";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import FeeStructureDetail from "./pages/FeeStructureDetail";
@@ -36,6 +37,7 @@ const NAV = [
   { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
   { to: "/settings", label: "Studio Details", roles: ["admin"] },
+  { to: "/audit", label: "Audit", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
   { to: "/my-fees", label: "My Fees", roles: ["parent"] },
   { to: "/tutor/sessions", label: "My Sessions", roles: ["tutor"] },
@@ -154,6 +156,7 @@ export default function App() {
       <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
       <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
+      <Route path="/audit" element={<Guard roles={["admin"]}><Audit /></Guard>} />
       <Route path="/account" element={<Guard><Account /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
       <Route path="/my-fees" element={<Guard roles={["parent"]}><MyFees /></Guard>} />

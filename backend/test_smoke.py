@@ -132,6 +132,15 @@ def run():
         assert c.get("/search?q=Asha", headers=ph).status_code == 403  # parent blocked
         assert c.get("/search?q=Asha", headers=th).status_code == 403  # tutor blocked
 
+        # Audit log: mutations recorded, reads/auth not; admin-only viewer
+        log = c.get("/audit", headers=h).json()
+        assert any(r["method"] == "POST" and r["path"] == "/students" for r in log), "student create not audited"
+        assert all(r["method"] != "GET" for r in log), "GET should not be audited"
+        assert all(not r["path"].startswith("/auth") for r in log), "/auth should not be audited"
+        assert any(r["user_email"] == "admin@example.com" for r in log)
+        assert c.get("/audit", headers=ph).status_code == 403  # parent blocked
+        assert c.get("/audit", headers=th).status_code == 403  # tutor blocked
+
     print("smoke OK")
 
 
