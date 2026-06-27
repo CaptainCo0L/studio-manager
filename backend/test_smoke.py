@@ -124,6 +124,14 @@ def run():
         # a tutor can't be linked to a second login
         assert c.post("/users", json={"email": "dup@example.com", "password": "pw123", "role": "tutor", "tutor_id": tut["id"]}, headers=h).status_code == 400
 
+        # Global search: staff finds students/batches/tutors; non-staff blocked
+        res = c.get("/search?q=Asha", headers=h).json()
+        assert any(hit["label"] == "Asha" for hit in res["students"]), res
+        assert any(hit["label"] == "Sat AM" for hit in c.get("/search?q=Sat", headers=h).json()["batches"])
+        assert any(hit["label"] == "Tutor One" for hit in c.get("/search?q=Tutor", headers=h).json()["tutors"])
+        assert c.get("/search?q=Asha", headers=ph).status_code == 403  # parent blocked
+        assert c.get("/search?q=Asha", headers=th).status_code == 403  # tutor blocked
+
     print("smoke OK")
 
 

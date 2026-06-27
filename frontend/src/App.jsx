@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import Account from "./pages/Account";
+import GlobalSearch from "./components/GlobalSearch";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
@@ -82,6 +83,7 @@ function Layout({ children }) {
         <Pigment />
         <span className="font-display text-xl font-semibold tracking-tight text-clay">Studio Manager</span>
       </Link>
+      {["admin", "staff"].includes(user.role) && <GlobalSearch onNavigate={() => setOpen(false)} />}
       <div className="flex-1 overflow-y-auto px-3">{nav}</div>
       <div className="border-t border-ink/10 px-4 py-3 text-sm">
         <div className="mb-2 truncate text-muted">{user.email}</div>
