@@ -29,6 +29,15 @@ class UserCreate(BaseModel):
     student_ids: list[int] = []  # only used for parent accounts
 
 
+class MeUpdate(BaseModel):
+    email: EmailStr
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6)  # basic floor; reject trivially short
+
+
 # ---- Tutors ----
 class TutorBase(BaseModel):
     name: str
