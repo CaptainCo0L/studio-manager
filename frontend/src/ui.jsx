@@ -26,7 +26,7 @@ export function useApi(fn, deps = []) {
 
 export function Page({ title, actions, children }) {
   return (
-    <div>
+    <div className="animate-fade-rise">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">{title}</h1>
         <div className="flex gap-2">{actions}</div>
