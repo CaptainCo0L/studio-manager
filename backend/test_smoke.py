@@ -94,6 +94,10 @@ def run():
         assert c.get("/users/me", headers=h).json()["email"] == "boss@example.com"  # token still valid
         assert c.put("/users/me", json={"email": "parent@example.com"}, headers=h).status_code == 400  # taken
 
+        # Roster auto-seeds unmarked enrolled students as present (leaner marking)
+        roster = c.get(f"/attendance/roster/{s1}", headers=h).json()
+        assert any(r["student_id"] == sid and r["status"] == "present" for r in roster), roster
+
     print("smoke OK")
 
 

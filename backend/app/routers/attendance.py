@@ -80,7 +80,8 @@ def roster(session_id: int, db: Session = Depends(get_db), _=Depends(require_sta
         }
         for (sid,) in enrolled:
             if sid not in existing:
-                db.add(Attendance(session_id=session_id, student_id=sid, status="absent"))
+                # default present: most students attend, so this minimises marking
+                db.add(Attendance(session_id=session_id, student_id=sid, status="present"))
         db.commit()
     return (
         db.query(Attendance)
