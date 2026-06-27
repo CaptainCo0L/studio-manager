@@ -105,7 +105,7 @@ class Attendance(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"))
     student_id: Mapped[int] = mapped_column(ForeignKey("students.id"))
-    status: Mapped[str] = mapped_column(String)  # present|absent|late
+    status: Mapped[str] = mapped_column(String)  # present|absent
 
 
 class FeeStructure(Base):

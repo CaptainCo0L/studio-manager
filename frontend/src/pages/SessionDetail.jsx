@@ -3,11 +3,10 @@ import { useParams } from "react-router-dom";
 import { api } from "../api";
 import { Page, useApi } from "../ui";
 
-const STATUSES = ["present", "absent", "late"];
+const STATUSES = ["present", "absent"];
 const STATUS_STYLE = {
   present: "bg-sage text-paper",
   absent: "bg-red-500 text-paper",
-  late: "bg-ochre text-ink",
 };
 
 export default function SessionDetail() {
@@ -81,7 +80,7 @@ export default function SessionDetail() {
               <button className="btn-ghost text-xs" onClick={() => markAll("absent")}>Mark all absent</button>
             </div>
             <div className="text-xs text-muted">
-              Present {counts.present} · Absent {counts.absent} · Late {counts.late}
+              Present {counts.present} · Absent {counts.absent}
             </div>
           </div>
           {roster.map((r) => (

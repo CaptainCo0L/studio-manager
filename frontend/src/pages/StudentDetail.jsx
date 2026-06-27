@@ -5,7 +5,6 @@ import { Page, Table, inr, useApi } from "../ui";
 
 const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
-  late: { icon: "", word: "Late", cls: "text-ochre" },
   absent: { icon: "✗", word: "", cls: "text-red-600" },
 };
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -79,7 +78,6 @@ function AttendanceCalendar({ items }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1"><span className="text-base font-bold text-sage">✓</span> Present</span>
-        <span className="flex items-center gap-1"><span className="text-sm font-semibold text-ochre">Late</span></span>
         <span className="flex items-center gap-1"><span className="text-base font-bold text-red-600">✗</span> Absent</span>
         <span className="flex items-center gap-1"><span className="inline-block h-3 w-4 rounded-sm border border-ochre/40 bg-ochre/15" /> Scheduled</span>
       </div>

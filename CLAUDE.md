@@ -21,7 +21,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - **BatchEnrollment** — M:N student↔batch (`is_active`).
 - **ParentLink** — M:N parent-user↔student.
 - **Session** — one class occurrence. `session_type` = batch|private|dropin. Has date, optional times, `rate` (private/dropin), `tutor_id`, `batch_id`.
-- **Attendance** — per (session, student). status = present|absent|late. Unique on (session_id, student_id).
+- **Attendance** — per (session, student). status = present|absent. Unique on (session_id, student_id).
 - **FeeStructure** — fee template tied to a batch.
 - **FeeInvoice** — amount owed by a student (`amount_due`, `amount_paid`, `balance`).
 - **Payment** — cash|card|upi|bank_transfer|other. Optional `invoice_id` (updates paid balance) or `session_id` (private lesson).
