@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { inr, useApi } from "../ui";
+import { fmtMonth } from "./Payments";
 
 const fmtDate = (d) => (d ? String(d).slice(0, 10) : "—");
 const invNo = (id) => `INV-${String(id).padStart(4, "0")}`;
@@ -15,7 +16,9 @@ export default function PaymentInvoice() {
 
   const p = pay.data;
   const s = studio.data;
-  const desc = `Payment received (${p.method})` + (p.note ? ` — ${p.note}` : "");
+  const desc =
+    (p.batch_name ? `Tuition — ${p.batch_name} (${fmtMonth(p.period_month)})` : `Payment received (${p.method})`) +
+    (p.note ? ` — ${p.note}` : "");
 
   return (
     <div className="mx-auto max-w-3xl">

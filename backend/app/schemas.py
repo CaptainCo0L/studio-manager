@@ -158,6 +158,8 @@ class PaymentCreate(BaseModel):
     amount: Decimal = Field(gt=0)
     method: str  # cash|card|upi|bank_transfer|other
     student_id: int | None = None
+    batch_id: int | None = None
+    period_month: str | None = None  # "YYYY-MM"
     session_id: int | None = None
     note: str | None = None
 
@@ -167,6 +169,8 @@ class PaymentOut(ORM):
     student_id: int | None
     amount: float
     method: str
+    batch_id: int | None
+    period_month: str | None
     session_id: int | None
     note: str | None
     created_at: datetime
@@ -177,6 +181,7 @@ class PaymentInvoiceOut(PaymentOut):
     guardian_name: str | None
     guardian_phone: str | None
     guardian_email: str | None
+    batch_name: str | None
 
 
 # ---- Studio settings ----

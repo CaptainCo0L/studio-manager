@@ -31,11 +31,14 @@ def run():
         gen = c.post(f"/sessions/{bid}/generate", json={"weeks": 2}, headers=h).json()
         assert len(gen) == 2, gen
 
-        # Payment ledger: record a payment; every payment has a derived invoice
-        pid = c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).json()["id"]
+        # Monthly batch payment: student + batch + month required (non-session)
+        assert c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).status_code == 400
+        pid = c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid, "batch_id": bid, "period_month": "2026-06"}, headers=h).json()["id"]
         assert any(p["amount"] == 1000 for p in c.get("/payments", headers=h).json())
         pinv = c.get(f"/payments/{pid}", headers=h).json()
-        assert pinv["student_name"] == "Asha" and pinv["amount"] == 1000 and pinv["method"] == "upi", pinv
+        assert pinv["student_name"] == "Asha" and pinv["batch_name"] == "Sat AM" and pinv["period_month"] == "2026-06", pinv
+        # session-tied (private) payment needs no batch/month
+        assert c.post("/payments", json={"amount": 200, "method": "cash", "session_id": gen[0]["id"]}, headers=h).status_code == 201
 
         # Parent isolation
         other = c.post("/students", json={"name": "Hidden Kid"}, headers=h).json()
