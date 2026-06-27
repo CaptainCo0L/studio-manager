@@ -65,6 +65,92 @@ function RecentPayments() {
   );
 }
 
+function TodaysClasses({ batches }) {
+  const today = todayISO();
+  const sessions = useApi(() => api.get(`/sessions?date_from=${today}&date_to=${today}`));
+  const nameOf = (bid) => (batches || []).find((b) => b.id === bid)?.name;
+  const rows = sessions.data || [];
+  return (
+    <Panel title="Today's classes" link="/sessions">
+      {rows.length ? (
+        <ul className="divide-y divide-ink/5 text-sm">
+          {rows.map((s) => (
+            <li key={s.id} className="py-2">
+              <Link className="hover:underline" to={`/sessions/${s.id}`}>
+                {s.start_time ? s.start_time.slice(0, 5) : "—"} · <span className="capitalize">{s.session_type}</span>
+                {s.batch_id && nameOf(s.batch_id) ? ` · ${nameOf(s.batch_id)}` : ""}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-muted">No classes today.</p>}
+    </Panel>
+  );
+}
+
+function AttendanceSnapshot() {
+  const att = useApi(() => api.get("/reports/attendance-summary"));
+  const d = att.data || {};
+  const present = d.present || 0;
+  const absent = d.absent || 0;
+  const total = present + absent;
+  return (
+    <Panel title="Attendance snapshot">
+      {total ? (
+        <div>
+          <div className="font-display text-3xl font-semibold text-ink">{Math.round((present / total) * 100)}%</div>
+          <div className="text-sm text-muted">attendance rate</div>
+          <div className="mt-2 text-sm text-muted">Present {present} · Absent {absent}</div>
+        </div>
+      ) : <p className="text-sm text-muted">No attendance recorded yet.</p>}
+    </Panel>
+  );
+}
+
+function OutstandingFees({ students }) {
+  const invoices = useApi(() => api.get("/fees/invoices?unpaid=true"));
+  const nameOf = (sid) => (students || []).find((s) => s.id === sid)?.name || `#${sid}`;
+  const today = todayISO();
+  const rows = invoices.data || [];
+  const total = rows.reduce((sum, i) => sum + Number(i.balance), 0);
+  const top = [...rows].sort((a, b) => b.balance - a.balance).slice(0, 5);
+  return (
+    <Panel title="Outstanding fees" link="/fees">
+      {rows.length ? (
+        <>
+          <div className="mb-2 text-sm text-muted">{rows.length} unpaid · <span className="font-medium text-ink">{inr(total)}</span> owed</div>
+          <ul className="divide-y divide-ink/5 text-sm">
+            {top.map((i) => (
+              <li key={i.id} className="flex items-center justify-between py-2">
+                <Link className="hover:underline" to={`/fees/invoices/${i.id}`}>
+                  {nameOf(i.student_id)}
+                  {i.due_date && i.due_date < today && <span className="ml-2 rounded-full bg-terracotta/15 px-1.5 text-xs text-clay">overdue</span>}
+                </Link>
+                <span className="font-medium">{inr(i.balance)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : <p className="text-sm text-muted">All paid up.</p>}
+    </Panel>
+  );
+}
+
+function CollectionProgress({ fees }) {
+  if (!fees) return <Panel title="Fee collection"><p className="text-sm text-muted">…</p></Panel>;
+  const invoiced = Number(fees.invoiced) || 0;
+  const collected = Number(fees.collected_on_invoices) || 0;
+  const pct = invoiced ? Math.round((collected / invoiced) * 100) : 0;
+  return (
+    <Panel title="Fee collection">
+      <div className="mb-2 text-sm text-muted">{inr(collected)} of {inr(invoiced)} invoiced <span className="font-medium text-ink">({pct}%)</span></div>
+      <div className="h-3 w-full overflow-hidden rounded-full bg-ink/10">
+        <div className="h-full rounded-full bg-sage" style={{ width: `${Math.min(100, pct)}%` }} />
+      </div>
+    </Panel>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
 
@@ -123,6 +209,10 @@ function StaffDashboard() {
         </div>
       </Animate>
       <Animate delay={60} className="mt-6 grid gap-4 lg:grid-cols-2">
+        <TodaysClasses batches={batches.data} />
+        <AttendanceSnapshot />
+        <OutstandingFees students={students.data} />
+        <CollectionProgress fees={fees.data} />
         <UpcomingSessions />
         <RecentPayments />
       </Animate>
