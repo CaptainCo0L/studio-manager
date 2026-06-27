@@ -3,20 +3,21 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Page, Table, inr, useApi } from "../ui";
 
-const DOT = {
-  present: "bg-sage",
-  late: "bg-ochre",
-  absent: "bg-red-500",
-  excused: "bg-ink/30",
+const MARK = {
+  present: { icon: "✓", word: "", cls: "text-sage" },
+  late: { icon: "✓", word: "Late", cls: "text-ochre" },
+  absent: { icon: "✗", word: "", cls: "text-red-600" },
+  excused: { icon: "✗", word: "Excused", cls: "text-ink/40" },
 };
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-function Legend({ className, label }) {
+function Marker({ status }) {
+  const m = MARK[status] || { icon: "•", word: status, cls: "text-ink/40" };
   return (
-    <span className="flex items-center gap-1.5">
-      <span className={`h-2.5 w-2.5 rounded-full ${className}`} />
-      {label}
+    <span className={`flex items-center gap-0.5 ${m.cls}`}>
+      <span className="text-lg font-bold leading-none">{m.icon}</span>
+      {m.word && <span className="text-xs font-medium leading-none">{m.word}</span>}
     </span>
   );
 }
@@ -47,30 +48,42 @@ function AttendanceCalendar({ items }) {
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-xs">
         {WEEKDAYS.map((w) => <div key={w} className="py-1 text-muted">{w}</div>)}
-        {cells.map((d, i) => (
-          <div key={i} className={`min-h-[3.25rem] rounded-md border p-1 ${d ? "border-ink/10" : "border-transparent"}`}>
-            {d && <div className="text-right text-[0.7rem] text-ink/50">{d}</div>}
-            {d && (byDate[iso(d)] || []).length > 0 && (
-              <div className="mt-0.5 flex flex-wrap justify-center gap-0.5">
-                {byDate[iso(d)].map((it) => (
-                  <Link
-                    key={it.session_id}
-                    to={`/sessions/${it.session_id}`}
-                    title={`${it.session_type} — ${it.status || "scheduled"}`}
-                    className={`h-2.5 w-2.5 rounded-full ${it.status ? DOT[it.status] || "bg-ink/30" : "border border-ink/40"}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+        {cells.map((d, i) => {
+          const items = d ? byDate[iso(d)] || [] : [];
+          const scheduled = items.some((it) => !it.status);
+          const marked = items.filter((it) => it.status);
+          return (
+            <div
+              key={i}
+              className={`min-h-[4.5rem] rounded-md border p-1 ${
+                !d ? "border-transparent" : scheduled ? "border-ochre/40 bg-ochre/15" : "border-ink/10"
+              }`}
+            >
+              {d && <div className="text-right text-xs text-ink/50">{d}</div>}
+              {marked.length > 0 && (
+                <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                  {marked.map((it) => (
+                    <Link
+                      key={it.session_id}
+                      to={`/sessions/${it.session_id}`}
+                      title={`${it.session_type} — ${it.status}`}
+                      className="hover:opacity-70"
+                    >
+                      <Marker status={it.status} />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-        <Legend className="bg-sage" label="Present" />
-        <Legend className="bg-ochre" label="Late" />
-        <Legend className="bg-red-500" label="Absent" />
-        <Legend className="bg-ink/30" label="Excused" />
-        <Legend className="border border-ink/40" label="Scheduled" />
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+        <span className="flex items-center gap-1"><span className="text-base font-bold text-sage">✓</span> Present</span>
+        <span className="flex items-center gap-1"><span className="text-base font-bold text-ochre">✓</span> Late</span>
+        <span className="flex items-center gap-1"><span className="text-base font-bold text-red-600">✗</span> Absent</span>
+        <span className="flex items-center gap-1"><span className="text-base font-bold text-ink/40">✗</span> Excused</span>
+        <span className="flex items-center gap-1"><span className="inline-block h-3 w-4 rounded-sm border border-ochre/40 bg-ochre/15" /> Scheduled</span>
       </div>
     </div>
   );
