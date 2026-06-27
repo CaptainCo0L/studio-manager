@@ -17,7 +17,7 @@ def mark_bulk(payload: AttendanceBulk, db: Session = Depends(get_db), _=Depends(
     sess = db.get(ClassSession, payload.session_id)
     if not sess:
         raise HTTPException(status_code=404, detail="Session not found")
-    valid = {"present", "absent", "late", "excused"}
+    valid = {"present", "absent"}
     out = []
     for item in payload.items:
         if item.status not in valid:

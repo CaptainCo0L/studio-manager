@@ -103,7 +103,7 @@ class AttendanceCalendarItem(BaseModel):
     date: date
     session_id: int
     session_type: str  # batch|private|dropin
-    status: str | None  # present|late|absent|excused, or None when not yet marked
+    status: str | None  # present|absent, or None when not yet marked
 
 
 # ---- Sessions ----
@@ -133,7 +133,7 @@ class GenerateIn(BaseModel):
 # ---- Attendance ----
 class AttendanceItem(BaseModel):
     student_id: int
-    status: str  # present|absent|late|excused
+    status: str  # present|absent
 
 
 class AttendanceBulk(BaseModel):

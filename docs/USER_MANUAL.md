@@ -107,8 +107,8 @@ A **session** is one class occurrence. Three types:
 **Open a session** to:
 
 - **Mark the roster** — for batch sessions the enrolled students are listed
-  (defaulting to *absent*). Tap **present / absent / late / excused** for each,
-  then **Save attendance**.
+  (defaulting to *present*). Tap **present / absent** for each (or use
+  **Mark all present / absent**), then **Save attendance**.
 - **Record payment** (private/drop-in only) — enter amount and method to log a
   payment tied directly to that lesson.
 

@@ -5,9 +5,7 @@ import { Page, Table, inr, useApi } from "../ui";
 
 const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
-  late: { icon: "✓", word: "Late", cls: "text-ochre" },
   absent: { icon: "✗", word: "", cls: "text-red-600" },
-  excused: { icon: "✗", word: "Excused", cls: "text-ink/40" },
 };
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -16,8 +14,8 @@ function Marker({ status }) {
   const m = MARK[status] || { icon: "•", word: status, cls: "text-ink/40" };
   return (
     <span className={`flex items-center gap-0.5 ${m.cls}`}>
-      <span className="text-lg font-bold leading-none">{m.icon}</span>
-      {m.word && <span className="text-xs font-medium leading-none">{m.word}</span>}
+      {m.icon && <span className="text-lg font-bold leading-none">{m.icon}</span>}
+      {m.word && <span className="text-sm font-semibold leading-none">{m.word}</span>}
     </span>
   );
 }
@@ -80,9 +78,7 @@ function AttendanceCalendar({ items }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1"><span className="text-base font-bold text-sage">✓</span> Present</span>
-        <span className="flex items-center gap-1"><span className="text-base font-bold text-ochre">✓</span> Late</span>
         <span className="flex items-center gap-1"><span className="text-base font-bold text-red-600">✗</span> Absent</span>
-        <span className="flex items-center gap-1"><span className="text-base font-bold text-ink/40">✗</span> Excused</span>
         <span className="flex items-center gap-1"><span className="inline-block h-3 w-4 rounded-sm border border-ochre/40 bg-ochre/15" /> Scheduled</span>
       </div>
     </div>
