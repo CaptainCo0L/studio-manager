@@ -1,8 +1,4 @@
-import csv
-import io
-
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -13,7 +9,6 @@ from ..models import (
     FeeInvoice,
     Payment,
     Session as ClassSession,
-    Student,
     Tutor,
 )
 
@@ -67,40 +62,3 @@ def tutor_sessions(db: Session = Depends(get_db), _=Depends(require_staff)):
     return out
 
 
-def _csv_response(header: list[str], rows: list[list], filename: str) -> StreamingResponse:
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(header)
-    w.writerows(rows)
-    buf.seek(0)
-    return StreamingResponse(
-        iter([buf.getvalue()]),
-        media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
-    )
-
-
-@router.get("/students.csv")
-def students_csv(db: Session = Depends(get_db), _=Depends(require_staff)):
-    rows = [
-        [s.id, s.name, s.guardian_name, s.guardian_phone, s.guardian_email, s.is_active]
-        for s in db.query(Student).order_by(Student.name).all()
-    ]
-    return _csv_response(
-        ["id", "name", "guardian_name", "guardian_phone", "guardian_email", "is_active"],
-        rows,
-        "students.csv",
-    )
-
-
-@router.get("/payments.csv")
-def payments_csv(db: Session = Depends(get_db), _=Depends(require_staff)):
-    rows = [
-        [p.id, p.student_id, float(p.amount), p.method, p.invoice_id, p.session_id, p.created_at]
-        for p in db.query(Payment).order_by(Payment.id).all()
-    ]
-    return _csv_response(
-        ["id", "student_id", "amount", "method", "invoice_id", "session_id", "created_at"],
-        rows,
-        "payments.csv",
-    )
