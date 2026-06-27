@@ -61,7 +61,13 @@ export default function Fees() {
         </form>
       )}
       <Table
-        columns={["Name", "Batch", "Amount", "Period", ""]}
+        columns={[
+          { label: "Name", sort: (f) => f.name },
+          { label: "Batch", sort: (f) => f.batch_id },
+          { label: "Amount", sort: (f) => Number(f.amount) },
+          { label: "Period", sort: (f) => f.period },
+          "",
+        ]}
         rows={structures.data || []}
         empty="No fee templates."
         onRowClick={(f) => navigate(`/fees/structures/${f.id}`)}
@@ -95,7 +101,14 @@ export default function Fees() {
         </form>
       )}
       <Table
-        columns={["Student", "Due", "Paid", "Balance", "Status", ""]}
+        columns={[
+          { label: "Student", sort: (i) => nameOf(i.student_id) },
+          { label: "Due", sort: (i) => Number(i.amount_due) },
+          { label: "Paid", sort: (i) => Number(i.amount_paid) },
+          { label: "Balance", sort: (i) => Number(i.balance) },
+          { label: "Status", sort: (i) => i.status },
+          "",
+        ]}
         rows={invoices.data || []}
         empty="No invoices."
         onRowClick={(i) => navigate(`/fees/invoices/${i.id}`)}

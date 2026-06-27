@@ -16,7 +16,12 @@ export default function MyFees() {
 
       <h2 className="mb-2 font-semibold">Invoices</h2>
       <Table
-        columns={["Due", "Paid", "Balance", "Status"]}
+        columns={[
+          { label: "Due", sort: (i) => Number(i.amount_due) },
+          { label: "Paid", sort: (i) => Number(i.amount_paid) },
+          { label: "Balance", sort: (i) => Number(i.balance) },
+          { label: "Status", sort: (i) => i.status },
+        ]}
         rows={invoices.data || []}
         empty="No invoices."
         render={(i) => (
@@ -31,7 +36,11 @@ export default function MyFees() {
 
       <h2 className="mb-2 mt-6 font-semibold">Payments</h2>
       <Table
-        columns={["Amount", "Method", "When"]}
+        columns={[
+          { label: "Amount", sort: (p) => Number(p.amount) },
+          { label: "Method", sort: (p) => p.method },
+          { label: "When", sort: (p) => p.created_at },
+        ]}
         rows={payments.data || []}
         empty="No payments yet."
         render={(p) => (

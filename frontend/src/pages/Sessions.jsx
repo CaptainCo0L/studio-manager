@@ -86,7 +86,12 @@ export default function Sessions() {
       )}
 
       <Table
-        columns={["Date", "Type", "Batch", ""]}
+        columns={[
+          { label: "Date", sort: (s) => s.date },
+          { label: "Type", sort: (s) => s.session_type },
+          { label: "Batch", sort: (s) => s.batch_id ?? 0 },
+          "",
+        ]}
         rows={list.data || []}
         render={(s) => (
           <>
