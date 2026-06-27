@@ -13,6 +13,7 @@ from .routers import (
     payments,
     reports,
     sessions,
+    settings,
     students,
     tutors,
     users,
@@ -53,6 +54,7 @@ for r in (
     payments,
     reports,
     notifications,
+    settings,
 ):
     app.include_router(r.router)
 

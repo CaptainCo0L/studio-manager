@@ -168,6 +168,23 @@ class InvoiceOut(ORM):
     created_at: datetime
 
 
+class PaymentLine(BaseModel):
+    id: int
+    amount: float
+    method: str
+    created_at: datetime
+
+
+class InvoiceDetailOut(InvoiceOut):
+    student_name: str
+    guardian_name: str | None
+    guardian_phone: str | None
+    guardian_email: str | None
+    fee_name: str | None  # fee structure name, if linked
+    fee_period: str | None
+    payments: list[PaymentLine]
+
+
 # ---- Payments ----
 class PaymentCreate(BaseModel):
     amount: Decimal = Field(gt=0)
@@ -187,6 +204,22 @@ class PaymentOut(ORM):
     session_id: int | None
     note: str | None
     created_at: datetime
+
+
+# ---- Studio settings ----
+class StudioSettingsOut(ORM):
+    id: int
+    studio_name: str
+    address: str | None
+    phone: str | None
+    email: str | None
+
+
+class StudioSettingsUpdate(BaseModel):
+    studio_name: str | None = None
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
 
 
 # ---- Notifications ----

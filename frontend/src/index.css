@@ -45,6 +45,17 @@
   }
 }
 
+@media print {
+  body {
+    background: #fff;
+  }
+  /* let the invoice sheet use the full page when printing */
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
