@@ -85,6 +85,25 @@ export default function Dashboard() {
     );
   }
 
+  if (user.role === "tutor") {
+    return (
+      <Page title="Welcome">
+        <Animate className="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <h2 className="mb-3 font-display text-lg font-semibold text-ink">Your sessions</h2>
+            <p className="mb-3 text-sm text-muted">View your scheduled sessions and mark attendance.</p>
+            <Link className="btn" to="/tutor/sessions">My Sessions</Link>
+          </Card>
+          <Card>
+            <h2 className="mb-3 font-display text-lg font-semibold text-ink">Your earnings</h2>
+            <p className="mb-3 text-sm text-muted">Session counts and estimated payout.</p>
+            <Link className="btn-ghost" to="/tutor/earnings">My Earnings</Link>
+          </Card>
+        </Animate>
+      </Page>
+    );
+  }
+
   return <StaffDashboard />;
 }
 

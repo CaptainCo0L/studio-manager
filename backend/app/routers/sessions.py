@@ -7,6 +7,7 @@ from ..database import get_db
 from ..deps import get_current_user, require_staff
 from ..models import Attendance, Batch, BatchEnrollment, Session as ClassSession, User
 from ..routers.students import _visible_student_ids
+from ..routers.tutors import _visible_tutor_id
 from ..schemas import GenerateIn, SessionCreate, SessionOut
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -23,13 +24,17 @@ def list_sessions(
     user: User = Depends(get_current_user),
 ):
     q = db.query(ClassSession)
-    visible = _visible_student_ids(db, user)
-    if visible is not None:
-        # parents see only sessions their children attend
-        sess_ids = db.query(Attendance.session_id).filter(
-            Attendance.student_id.in_(visible or {-1})
-        )
-        q = q.filter(ClassSession.id.in_(sess_ids))
+    if user.role == "tutor":
+        # tutors see only their own sessions
+        q = q.filter(ClassSession.tutor_id == _visible_tutor_id(db, user))
+    else:
+        visible = _visible_student_ids(db, user)
+        if visible is not None:
+            # parents see only sessions their children attend
+            sess_ids = db.query(Attendance.session_id).filter(
+                Attendance.student_id.in_(visible or {-1})
+            )
+            q = q.filter(ClassSession.id.in_(sess_ids))
     if batch_id:
         q = q.filter(ClassSession.batch_id == batch_id)
     if tutor_id:
@@ -49,6 +54,11 @@ def get_session(
     session_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ):
     sess = _get(db, session_id)
+    if user.role == "tutor":
+        # tutors may only see their own sessions
+        if sess.tutor_id != _visible_tutor_id(db, user):
+            raise HTTPException(status_code=404, detail="Session not found")
+        return sess
     # parents may only see sessions one of their children attends
     visible = _visible_student_ids(db, user)
     if visible is not None and not (

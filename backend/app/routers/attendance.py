@@ -4,18 +4,29 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..deps import get_current_user, require_staff
-from ..models import Attendance, BatchEnrollment, Session as ClassSession, User
+from ..deps import get_current_user
+from ..models import Attendance, BatchEnrollment, Session as ClassSession, Student, User
 from ..routers.students import _visible_student_ids
-from ..schemas import AttendanceBulk, AttendanceOut
+from ..routers.tutors import _visible_tutor_id
+from ..schemas import AttendanceBulk, AttendanceOut, RosterRow
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
 
+def _can_mark(db: Session, user: User, sess: ClassSession) -> bool:
+    """Staff mark any session; a tutor only their own; nobody else."""
+    if user.role in ("admin", "staff"):
+        return True
+    if user.role == "tutor":
+        return sess.tutor_id == _visible_tutor_id(db, user)
+    return False
+
+
 @router.post("/bulk", response_model=list[AttendanceOut])
-def mark_bulk(payload: AttendanceBulk, db: Session = Depends(get_db), _=Depends(require_staff)):
+def mark_bulk(payload: AttendanceBulk, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     sess = db.get(ClassSession, payload.session_id)
-    if not sess:
+    if not sess or not _can_mark(db, user, sess):
+        # 404 (not 403) so a tutor can't probe other tutors' session ids
         raise HTTPException(status_code=404, detail="Session not found")
     valid = {"present", "absent"}
     out = []
@@ -62,11 +73,11 @@ def list_attendance(
     return q.order_by(Attendance.id).all()
 
 
-@router.get("/roster/{session_id}", response_model=list[AttendanceOut])
-def roster(session_id: int, db: Session = Depends(get_db), _=Depends(require_staff)):
+@router.get("/roster/{session_id}", response_model=list[RosterRow])
+def roster(session_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """Roster for a batch session: auto-fill enrolled students not yet marked."""
     sess = db.get(ClassSession, session_id)
-    if not sess:
+    if not sess or not _can_mark(db, user, sess):
         raise HTTPException(status_code=404, detail="Session not found")
     if sess.batch_id:
         enrolled = (
@@ -83,9 +94,15 @@ def roster(session_id: int, db: Session = Depends(get_db), _=Depends(require_sta
                 # default present: most students attend, so this minimises marking
                 db.add(Attendance(session_id=session_id, student_id=sid, status="present"))
         db.commit()
-    return (
+    rows = (
         db.query(Attendance)
         .filter(Attendance.session_id == session_id)
         .order_by(Attendance.student_id)
         .all()
     )
+    names = {s.id: s.name for s in db.query(Student).filter(Student.id.in_([r.student_id for r in rows] or [-1])).all()}
+    return [
+        RosterRow(id=r.id, session_id=r.session_id, student_id=r.student_id, status=r.status,
+                  student_name=names.get(r.student_id, f"#{r.student_id}"))
+        for r in rows
+    ]

@@ -102,6 +102,28 @@ def run():
         for bad in ("excused", "late"):
             assert c.post("/attendance/bulk", json={"session_id": s0, "items": [{"student_id": sid, "status": bad}]}, headers=h).status_code == 400
 
+        # --- Tutor login + portal isolation ---
+        tut = c.post("/tutors", json={"name": "Tutor One", "default_rate": 500}, headers=h).json()
+        tsess = c.post("/sessions", json={"session_type": "batch", "date": "2030-01-05", "batch_id": bid, "tutor_id": tut["id"]}, headers=h).json()["id"]
+        c.post("/users", json={"email": "tutor@example.com", "password": "tutorpw", "role": "tutor", "tutor_id": tut["id"]}, headers=h)
+        ttok = c.post("/auth/login", data={"username": "tutor@example.com", "password": "tutorpw"}).json()
+        th = {"Authorization": f"Bearer {ttok['access_token']}"}
+        # sees only their own session
+        assert [s["id"] for s in c.get("/sessions", headers=th).json()] == [tsess]
+        assert c.get(f"/sessions/{tsess}", headers=th).status_code == 200
+        assert c.get(f"/sessions/{s0}", headers=th).status_code == 404  # not their session
+        # roster carries names; can mark own session, not another's
+        roster_t = c.get(f"/attendance/roster/{tsess}", headers=th).json()
+        assert any(r["student_id"] == sid and r.get("student_name") for r in roster_t), roster_t
+        assert c.post("/attendance/bulk", json={"session_id": tsess, "items": [{"student_id": sid, "status": "absent"}]}, headers=th).status_code == 200
+        assert c.post("/attendance/bulk", json={"session_id": s0, "items": [{"student_id": sid, "status": "absent"}]}, headers=th).status_code == 404
+        # locked out of staff data
+        assert c.get("/students", headers=th).json() == []
+        assert c.get("/reports/tutor-sessions", headers=th).status_code == 403
+        assert c.get("/reports/my-earnings", headers=th).status_code == 200
+        # a tutor can't be linked to a second login
+        assert c.post("/users", json={"email": "dup@example.com", "password": "pw123", "role": "tutor", "tutor_id": tut["id"]}, headers=h).status_code == 400
+
     print("smoke OK")
 
 

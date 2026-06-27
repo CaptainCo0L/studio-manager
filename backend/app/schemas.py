@@ -25,8 +25,9 @@ class UserOut(ORM):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role: str = "staff"  # admin|staff|parent
+    role: str = "staff"  # admin|staff|parent|tutor
     student_ids: list[int] = []  # only used for parent accounts
+    tutor_id: int | None = None  # only used for tutor accounts
 
 
 class MeUpdate(BaseModel):
@@ -146,6 +147,10 @@ class AttendanceOut(ORM):
     session_id: int
     student_id: int
     status: str
+
+
+class RosterRow(AttendanceOut):
+    student_name: str
 
 
 # ---- Fees ----

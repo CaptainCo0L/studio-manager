@@ -12,6 +12,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - **admin** — full access incl. user management.
 - **staff** — all except user accounts.
 - **parent** — read-only portal; sees only their own linked children's sessions, attendance, fees, payments.
+- **tutor** — portal scoped to their own sessions; marks attendance for them and sees their own earnings/payout. Linked to a Tutor record via `Tutor.linked_user_id`. Isolation via `_visible_tutor_id()` in `routers/tutors.py`.
 
 ## Data model (SQLAlchemy)
 - **User** — login account (admin/staff/parent).
@@ -29,7 +30,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 
 ## API routes (prefix shown)
 - `/auth/login` → JWT (OAuth2 password form).
-- `/users` — list/create (admin), `/me`, enable/disable. Parent create accepts `student_ids`.
+- `/users` — list/create (admin), `/me`, enable/disable. Parent create accepts `student_ids`; tutor create accepts `tutor_id` (links the Tutor). `PUT /me`, `POST /me/password` for self-service.
 - `/tutors` — CRUD-ish, deactivate.
 - `/batches` — list (w/ student_count), create/update/delete, `/{id}/students`.
 - `/students` — list (search, batch filter), get/create/update/delete; `/enroll`, `/unenroll`. Parents see only linked kids.

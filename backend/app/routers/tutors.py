@@ -3,10 +3,21 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import require_staff
-from ..models import Tutor
+from ..models import Tutor, User
 from ..schemas import TutorCreate, TutorOut
 
 router = APIRouter(prefix="/tutors", tags=["tutors"])
+
+
+def _visible_tutor_id(db: Session, user: User) -> int | None:
+    """Tutor id a user is scoped to. None == no restriction (admin/staff).
+
+    Reuse in any tutor-scoped endpoint to enforce tutor isolation.
+    """
+    if user.role in ("admin", "staff"):
+        return None
+    t = db.query(Tutor).filter(Tutor.linked_user_id == user.id).first()
+    return t.id if t else -1  # -1 matches no session
 
 
 @router.get("", response_model=list[TutorOut])
