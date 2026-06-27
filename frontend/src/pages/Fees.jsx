@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Page, Table, inr, useApi } from "../ui";
 
 export default function Fees() {
+  const navigate = useNavigate();
   const structures = useApi(() => api.get("/fees/structures"));
   const invoices = useApi(() => api.get("/fees/invoices"));
   const batches = useApi(() => api.get("/batches"));
@@ -59,15 +61,17 @@ export default function Fees() {
         </form>
       )}
       <Table
-        columns={["Name", "Batch", "Amount", "Period"]}
+        columns={["Name", "Batch", "Amount", "Period", ""]}
         rows={structures.data || []}
         empty="No fee templates."
+        onRowClick={(f) => navigate(`/fees/structures/${f.id}`)}
         render={(f) => (
           <>
             <td className="td font-medium">{f.name}</td>
             <td className="td">#{f.batch_id}</td>
             <td className="td">{inr(f.amount)}</td>
             <td className="td">{f.period}</td>
+            <td className="td text-right text-terracotta">Open →</td>
           </>
         )}
       />
@@ -91,9 +95,10 @@ export default function Fees() {
         </form>
       )}
       <Table
-        columns={["Student", "Due", "Paid", "Balance", "Status"]}
+        columns={["Student", "Due", "Paid", "Balance", "Status", ""]}
         rows={invoices.data || []}
         empty="No invoices."
+        onRowClick={(i) => navigate(`/fees/invoices/${i.id}`)}
         render={(i) => (
           <>
             <td className="td font-medium">{nameOf(i.student_id)}</td>
@@ -101,6 +106,7 @@ export default function Fees() {
             <td className="td">{inr(i.amount_paid)}</td>
             <td className="td">{inr(i.balance)}</td>
             <td className="td capitalize">{i.status}</td>
+            <td className="td text-right text-terracotta">Open →</td>
           </>
         )}
       />

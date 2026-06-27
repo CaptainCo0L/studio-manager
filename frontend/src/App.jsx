@@ -13,6 +13,9 @@ import Fees from "./pages/Fees";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
+import Settings from "./pages/Settings";
+import InvoiceDetail from "./pages/InvoiceDetail";
+import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
 import MyFees from "./pages/MyFees";
 
@@ -27,6 +30,7 @@ const NAV = [
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
   { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
+  { to: "/settings", label: "Settings", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
   { to: "/my-fees", label: "My Fees", roles: ["parent"] },
 ];
@@ -83,7 +87,7 @@ function Layout({ children }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen md:block">{sidebar}</aside>
+      <aside className="sticky top-0 hidden h-screen md:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {open && (
@@ -95,7 +99,7 @@ function Layout({ children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden">
+        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
           <button className="btn-ghost px-2 py-1" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
           <span className="font-display text-lg font-semibold text-clay">Studio Manager</span>
         </header>
@@ -128,9 +132,12 @@ export default function App() {
       <Route path="/sessions" element={<Guard roles={staff}><Sessions /></Guard>} />
       <Route path="/sessions/:id" element={<Guard roles={staff}><SessionDetail /></Guard>} />
       <Route path="/fees" element={<Guard roles={staff}><Fees /></Guard>} />
+      <Route path="/fees/structures/:id" element={<Guard roles={staff}><FeeStructureDetail /></Guard>} />
+      <Route path="/fees/invoices/:id" element={<Guard><InvoiceDetail /></Guard>} />
       <Route path="/payments" element={<Guard roles={staff}><Payments /></Guard>} />
       <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
+      <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
       <Route path="/my-fees" element={<Guard roles={["parent"]}><MyFees /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />

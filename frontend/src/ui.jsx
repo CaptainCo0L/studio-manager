@@ -86,7 +86,7 @@ export function Stagger({ children, step = 40, className = "" }) {
   );
 }
 
-export function Table({ columns, rows, render, empty = "Nothing here yet." }) {
+export function Table({ columns, rows, render, empty = "Nothing here yet.", onRowClick }) {
   if (!rows?.length) return <div className="card text-sm text-muted">{empty}</div>;
   return (
     <div className="card overflow-x-auto p-0">
@@ -95,7 +95,15 @@ export function Table({ columns, rows, render, empty = "Nothing here yet." }) {
           <tr>{columns.map((c) => <th key={c} className="th">{c}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-ink/5">
-          {rows.map((r, i) => <tr key={r.id ?? i} className="transition-colors hover:bg-canvas/40">{render(r)}</tr>)}
+          {rows.map((r, i) => (
+            <tr
+              key={r.id ?? i}
+              onClick={onRowClick ? () => onRowClick(r) : undefined}
+              className={`transition-colors hover:bg-canvas/40 ${onRowClick ? "cursor-pointer" : ""}`}
+            >
+              {render(r)}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
