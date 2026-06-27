@@ -14,10 +14,11 @@ The current UI already has the warm art-studio identity (canvas/terracotta/sage/
 
 ## Decisions (from brainstorming)
 
-- Layout: **Sidebar app-shell** (left nav + fluid full-width content).
+- Layout: **Sidebar app-shell** (left nav + fluid full-width content) — option A, confirmed.
 - Motion: **CSS-only** (Tailwind keyframes + a tiny mount hook). No Framer Motion.
 - Browse pages (Students/Batches/Tutors): **gallery card-grid** as default view.
 - Transactional pages (Sessions, Payments, Fees, Reports): **stay tables** — columns matter there.
+- **Remove the Students CSV and Payments CSV exports** (see §5).
 
 ## Design
 
@@ -58,6 +59,14 @@ Replace top-nav + centered `<main>` with a two-region flex shell:
 - **Tutors (`Tutors.jsx`)** — `EntityCard` grid. Card: name, guest/account badge, default rate. Keep actions.
 - **Sessions / Payments / Fees / Reports / Users / detail pages** — keep table layouts; benefit from the new shell width, zebra rows, and a page-level `Animate` wrapper. No structural change.
 
+### 5. Remove CSV exports
+
+Drop the Students CSV and Payments CSV download features entirely.
+
+- **Backend (`backend/app/routers/reports.py`)** — remove the `students.csv` and `payments.csv` routes and the `_csv_response` helper (only those two use it). Remove now-dead imports: `csv`, `io`, `StreamingResponse`, and `Student`. Keep `Payment` (used by `fee_collection`). The `attendance-summary`, `fee-collection`, and `tutor-sessions` routes stay.
+- **Frontend (`frontend/src/pages/Reports.jsx`)** — remove the `download` helper and the two CSV buttons; the `Reports` page renders without an `actions` prop.
+- **`CLAUDE.md`** — update the `/reports` line to drop `students.csv`, `payments.csv` from the route list.
+
 ## Non-goals
 
 - No e-commerce / portfolio / gallery-store / AR / blog / newsletter features (those belong to a public site, not this admin tool).
@@ -73,6 +82,9 @@ Replace top-nav + centered `<main>` with a two-region flex shell:
 - `frontend/tailwind.config.js` — animation utilities.
 - `frontend/src/pages/Dashboard.jsx` — modular panels.
 - `frontend/src/pages/Students.jsx`, `Batches.jsx`, `Tutors.jsx` — card grids.
+- `frontend/src/pages/Reports.jsx` — remove CSV buttons + download helper.
+- `backend/app/routers/reports.py` — remove CSV routes + helper + dead imports.
+- `CLAUDE.md` — drop CSV mentions from the `/reports` route line.
 
 ## Verification
 
