@@ -150,6 +150,15 @@ class Payment(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class StudioSettings(Base):
+    __tablename__ = "studio_settings"
+    id: Mapped[int] = mapped_column(primary_key=True)  # always 1 (singleton)
+    studio_name: Mapped[str] = mapped_column(String, default="")
+    address: Mapped[str | None] = mapped_column(String, nullable=True)
+    phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
+
+
 class Notification(Base):
     __tablename__ = "notifications"
     id: Mapped[int] = mapped_column(primary_key=True)
