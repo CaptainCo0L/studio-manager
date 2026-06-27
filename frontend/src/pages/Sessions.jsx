@@ -1,7 +1,35 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, useApi } from "../ui";
+import { Page, Table, Card, useApi } from "../ui";
+
+const localISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+
+function SessionCard({ label, badge, emptyText, session, batchName, tutorName }) {
+  const chip = <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badge}`}>{label}</span>;
+  if (!session) {
+    return (
+      <div className="card flex min-h-[9rem] flex-col">
+        {chip}
+        <div className="flex flex-1 items-center justify-center text-sm text-muted">{emptyText}</div>
+      </div>
+    );
+  }
+  return (
+    <Link to={`/sessions/${session.id}`} className="block">
+      <Card hover className="flex min-h-[9rem] flex-col">
+        {chip}
+        <div className="mt-2 font-display text-lg font-semibold text-ink">{fmtDate(session.date)}</div>
+        <div className="mt-1 space-y-0.5 text-sm text-muted">
+          <div className="capitalize">{session.session_type}{session.batch_id ? ` · ${batchName(session.batch_id)}` : ""}</div>
+          <div>{session.start_time ? `${session.start_time}–${session.end_time || ""}` : "Time not set"}</div>
+          <div>{session.tutor_id ? tutorName(session.tutor_id) : "No tutor"}</div>
+        </div>
+      </Card>
+    </Link>
+  );
+}
 
 export default function Sessions() {
   const [filters, setFilters] = useState({ batch_id: "", date_from: "", date_to: "" });
@@ -12,6 +40,19 @@ export default function Sessions() {
 
   const qs = Object.entries(filters).filter(([, v]) => v).map(([k, v]) => `${k}=${v}`).join("&");
   const list = useApi(() => api.get(`/sessions?${qs}`), [qs]);
+
+  const batchName = (id) => (batches.data || []).find((b) => b.id === id)?.name || `#${id}`;
+  const tutorName = (id) => (tutors.data || []).find((t) => t.id === id)?.name || `#${id}`;
+
+  // Bucket the (date-desc) filtered list into prev / today / next, rest go in the list.
+  const rows = list.data || [];
+  const today = localISO(new Date());
+  const previous = rows.find((s) => s.date < today) || null;
+  const current = rows.find((s) => s.date === today) || null;
+  const future = rows.filter((s) => s.date > today);
+  const next = future.length ? future[future.length - 1] : null;
+  const featured = new Set([previous, current, next].filter(Boolean).map((s) => s.id));
+  const others = rows.filter((s) => !featured.has(s.id));
 
   async function create(e) {
     e.preventDefault();
@@ -85,6 +126,13 @@ export default function Sessions() {
         </form>
       )}
 
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
+        <SessionCard label="Previous" badge="bg-ink/10 text-muted" emptyText="No previous session" session={previous} batchName={batchName} tutorName={tutorName} />
+        <SessionCard label="Today" badge="bg-terracotta/15 text-clay" emptyText="No session today" session={current} batchName={batchName} tutorName={tutorName} />
+        <SessionCard label="Next" badge="bg-sage/20 text-ink" emptyText="No upcoming session" session={next} batchName={batchName} tutorName={tutorName} />
+      </div>
+
+      <h2 className="mb-2 font-semibold">All sessions</h2>
       <Table
         columns={[
           { label: "Date", sort: (s) => s.date },
@@ -92,12 +140,13 @@ export default function Sessions() {
           { label: "Batch", sort: (s) => s.batch_id ?? 0 },
           "",
         ]}
-        rows={list.data || []}
+        rows={others}
+        empty="No other sessions."
         render={(s) => (
           <>
             <td className="td">{s.date}</td>
             <td className="td capitalize">{s.session_type}</td>
-            <td className="td">{s.batch_id ? `#${s.batch_id}` : "—"}</td>
+            <td className="td">{s.batch_id ? batchName(s.batch_id) : "—"}</td>
             <td className="td text-right"><Link className="text-terracotta hover:underline" to={`/sessions/${s.id}`}>Open</Link></td>
           </>
         )}
