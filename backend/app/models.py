@@ -117,6 +117,8 @@ class Payment(Base):
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2))
     method: Mapped[str] = mapped_column(String)  # cash|card|upi|bank_transfer|other
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True)
+    period_month: Mapped[str | None] = mapped_column(String, nullable=True)  # "YYYY-MM"
     session_id: Mapped[int | None] = mapped_column(
         ForeignKey("sessions.id"), nullable=True
     )

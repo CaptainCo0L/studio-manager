@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user, require_staff
-from ..models import Payment, Student, User
+from ..models import Batch, Payment, Student, User
 from ..notify import send_notification
 from ..routers.students import _visible_student_ids
 from ..schemas import PaymentCreate, PaymentInvoiceOut, PaymentOut
@@ -36,13 +36,16 @@ def get_payment(payment_id: int, db: Session = Depends(get_db), user: User = Dep
     if p is None or (visible is not None and p.student_id not in visible):
         raise HTTPException(status_code=404, detail="Payment not found")
     student = db.get(Student, p.student_id) if p.student_id else None
+    batch = db.get(Batch, p.batch_id) if p.batch_id else None
     return PaymentInvoiceOut(
         id=p.id, student_id=p.student_id, amount=float(p.amount), method=p.method,
+        batch_id=p.batch_id, period_month=p.period_month,
         session_id=p.session_id, note=p.note, created_at=p.created_at,
         student_name=student.name if student else None,
         guardian_name=student.guardian_name if student else None,
         guardian_phone=student.guardian_phone if student else None,
         guardian_email=student.guardian_email if student else None,
+        batch_name=batch.name if batch else None,
     )
 
 
@@ -51,10 +54,16 @@ def create_payment(payload: PaymentCreate, db: Session = Depends(get_db), _=Depe
     if payload.method not in VALID_METHODS:
         raise HTTPException(status_code=400, detail="Invalid payment method")
 
+    # Non-session payments are monthly batch fees: student + batch + month required.
+    if payload.session_id is None and not (payload.student_id and payload.batch_id and payload.period_month):
+        raise HTTPException(status_code=400, detail="student, batch and month are required")
+
     student_id = payload.student_id
     payment = Payment(
         amount=payload.amount,
         method=payload.method,
+        batch_id=payload.batch_id,
+        period_month=payload.period_month,
         session_id=payload.session_id,
         note=payload.note,
         student_id=student_id,
