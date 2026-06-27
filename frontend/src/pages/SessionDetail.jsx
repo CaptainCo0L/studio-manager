@@ -5,8 +5,8 @@ import { Page, useApi } from "../ui";
 
 const STATUSES = ["present", "absent"];
 const STATUS_STYLE = {
-  present: "bg-sage text-paper",
-  absent: "bg-red-500 text-paper",
+  present: "bg-sage text-white",
+  absent: "bg-red-500 text-white",
 };
 
 export default function SessionDetail() {

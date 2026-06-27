@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --canvas: 243 236 223;
+  --paper: 255 253 248;
+  --terracotta: 189 91 61;
+  --clay: 143 63 40;
+  --sage: 126 139 104;
+  --ochre: 217 160 78;
+  --ink: 43 37 33;
+  --muted: 111 101 87;
+}
+
+.dark {
+  --canvas: 29 25 22;
+  --paper: 39 34 31;
+  --terracotta: 205 107 75;
+  --clay: 217 138 106;
+  --sage: 150 165 124;
+  --ochre: 224 168 90;
+  --ink: 236 227 214;
+  --muted: 165 150 132;
+}
+
+/* The printable invoice always renders dark-on-white — on screen and in print, in either theme. */
+.invoice-sheet {
+  --paper: 255 253 248;
+  --terracotta: 189 91 61;
+  --clay: 143 63 40;
+  --sage: 126 139 104;
+  --ochre: 217 160 78;
+  --ink: 43 37 33;
+  --muted: 111 101 87;
+}
+
 @layer base {
   body {
     @apply bg-canvas font-sans text-ink antialiased;
@@ -15,7 +48,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md bg-terracotta px-3.5 py-2 text-sm font-medium text-paper shadow-sm transition-colors hover:bg-clay focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md bg-terracotta px-3.5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-clay focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta disabled:opacity-50;
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center rounded-md border border-ink/15 bg-paper px-3.5 py-2 text-sm font-medium text-ink transition-colors hover:border-ink/30 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta;
