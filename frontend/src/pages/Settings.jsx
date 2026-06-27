@@ -22,7 +22,7 @@ export default function Settings() {
     settings.reload();
   }
 
-  if (!form) return <Page title="Studio settings"><div className="card text-sm text-muted">Loading…</div></Page>;
+  if (!form) return <Page title="Studio details"><div className="card text-sm text-muted">Loading…</div></Page>;
 
   const field = (key, label, type = "text") => (
     <label className="text-sm">
@@ -32,7 +32,7 @@ export default function Settings() {
   );
 
   return (
-    <Page title="Studio settings">
+    <Page title="Studio details">
       <form onSubmit={save} className="card grid max-w-2xl gap-4 md:grid-cols-2">
         <p className="text-sm text-muted md:col-span-2">These details appear as the issuer on printed invoices.</p>
         {field("studio_name", "Studio name")}

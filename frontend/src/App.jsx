@@ -30,7 +30,7 @@ const NAV = [
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
   { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
-  { to: "/settings", label: "Settings", roles: ["admin"] },
+  { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
   { to: "/my-fees", label: "My Fees", roles: ["parent"] },
 ];
