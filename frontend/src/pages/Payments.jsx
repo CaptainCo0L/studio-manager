@@ -1,15 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Page, Table, inr, useApi } from "../ui";
 
 export default function Payments() {
+  const navigate = useNavigate();
   const list = useApi(() => api.get("/payments"));
   const students = useApi(() => api.get("/students"));
   const [form, setForm] = useState(null);
 
   async function create(e) {
     e.preventDefault();
-    await api.post("/payments", {
+    const payment = await api.post("/payments", {
       amount: Number(form.amount),
       method: form.method,
       student_id: form.student_id ? Number(form.student_id) : null,
@@ -17,6 +19,7 @@ export default function Payments() {
     });
     setForm(null);
     list.reload();
+    navigate(`/payments/${payment.id}`); // open the auto-created invoice
   }
 
   const nameOf = (sid) => (students.data || []).find((s) => s.id === sid)?.name || (sid ? `#${sid}` : "—");
@@ -47,18 +50,19 @@ export default function Payments() {
           { label: "Student", sort: (p) => nameOf(p.student_id) },
           { label: "Amount", sort: (p) => Number(p.amount) },
           { label: "Method", sort: (p) => p.method },
-          { label: "Session", sort: (p) => p.session_id ?? 0 },
           { label: "When", sort: (p) => p.created_at },
+          "",
         ]}
         rows={list.data || []}
+        onRowClick={(p) => navigate(`/payments/${p.id}`)}
         render={(p) => (
           <>
             <td className="td">{p.id}</td>
             <td className="td">{nameOf(p.student_id)}</td>
             <td className="td font-medium">{inr(p.amount)}</td>
             <td className="td">{p.method}</td>
-            <td className="td">{p.session_id ? `session #${p.session_id}` : "—"}</td>
             <td className="td">{p.created_at?.slice(0, 10)}</td>
+            <td className="td text-right text-terracotta">Invoice →</td>
           </>
         )}
       />

@@ -23,7 +23,8 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - **ParentLink** — M:N parent-user↔student.
 - **Session** — one class occurrence. `session_type` = batch|private|dropin. Has date, optional times, `rate` (private/dropin), `tutor_id`, `batch_id`.
 - **Attendance** — per (session, student). status = present|absent. Unique on (session_id, student_id).
-- **Payment** — cash|card|upi|bank_transfer|other. Standalone ledger; optional `student_id`, `session_id` (private lesson), `note`.
+- **Payment** — cash|card|upi|bank_transfer|other. Standalone ledger; optional `student_id`, `session_id` (private lesson), `note`. Each payment has a derived printable invoice.
+- **StudioSettings** — singleton issuer block (name/address/phone/email) for the payment invoice header.
 - **Notification** — channel email|sms|whatsapp, status pending|sent|failed|disabled.
 
 ## API routes (prefix shown)
@@ -34,7 +35,8 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - `/students` — list (search, batch filter), get/create/update/delete; `/enroll`, `/unenroll`. Parents see only linked kids.
 - `/sessions` — list (filters: batch/tutor/date/student), create (auto-marks student present for private/dropin), `/{batch_id}/generate` (makes sessions for next N weeks from batch schedule).
 - `/attendance` — `/bulk` (mark roster), list (filters). Batch roster auto-fills from enrollment.
-- `/payments` — list, create (emails receipt if guardian email present).
+- `/payments` — list, create (emails receipt if guardian email present), `/{id}` (composite for the invoice).
+- `/settings` — `GET` (any auth, auto-creates), `PUT` (admin) studio issuer details.
 - `/reports` — `attendance-summary`, `tutor-sessions` (counts + private earnings/payouts), `my-earnings` (tutor's own).
 - `/notifications` — list, send.
 
@@ -42,7 +44,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 Pluggable providers. **Email (SMTP)** works once configured. **SMS (Twilio)** + **WhatsApp (Meta Business API)** activate when their `.env` creds are set; otherwise log as `disabled` (no error). Receipt auto-sent on payment when guardian email exists.
 
 ## Frontend pages
-Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance calendar); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Payments; Reports; Users (admin); Audit (admin); global search; dark mode. Parent: MySessions. Tutor: My Sessions (mark attendance), My Earnings. Auth + role guards in `App.jsx`.
+Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance calendar); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Payments + PaymentInvoice (printable); Studio Details (admin); Reports; Users (admin); Audit (admin); global search; dark mode. Parent: MySessions. Tutor: My Sessions (mark attendance), My Earnings. Auth + role guards in `App.jsx`.
 
 ## Status
 - Backend: **complete, tested end-to-end** (login, batches, students, sessions, attendance, payments, reports, parent + tutor isolation, audit).

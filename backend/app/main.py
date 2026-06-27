@@ -16,6 +16,7 @@ from .routers import (
     reports,
     search,
     sessions,
+    settings,
     students,
     tutors,
     users,
@@ -89,6 +90,7 @@ for r in (
     reports,
     notifications,
     search,
+    settings,
     audit,
 ):
     app.include_router(r.router)

@@ -31,9 +31,11 @@ def run():
         gen = c.post(f"/sessions/{bid}/generate", json={"weeks": 2}, headers=h).json()
         assert len(gen) == 2, gen
 
-        # Payment ledger (no invoices): record a standalone payment
-        assert c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).status_code == 201
+        # Payment ledger: record a payment; every payment has a derived invoice
+        pid = c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).json()["id"]
         assert any(p["amount"] == 1000 for p in c.get("/payments", headers=h).json())
+        pinv = c.get(f"/payments/{pid}", headers=h).json()
+        assert pinv["student_name"] == "Asha" and pinv["amount"] == 1000 and pinv["method"] == "upi", pinv
 
         # Parent isolation
         other = c.post("/students", json={"name": "Hidden Kid"}, headers=h).json()
@@ -58,9 +60,12 @@ def run():
         # Money validation: amounts must be > 0
         assert c.post("/payments", json={"amount": -50, "method": "cash"}, headers=h).status_code == 422
 
-        # Fees and studio settings are removed
+        # Fees stay removed; studio settings are back for the invoice header
         assert c.get("/fees/structures", headers=h).status_code == 404
-        assert c.get("/settings", headers=h).status_code == 404
+        s = c.get("/settings", headers=h).json()
+        assert s["id"] == 1 and "studio_name" in s, s
+        assert c.put("/settings", json={"studio_name": "Kalanthra Art Studio"}, headers=h).json()["studio_name"] == "Kalanthra Art Studio"
+        assert c.put("/settings", json={"studio_name": "Hacked"}, headers=ph).status_code == 403
 
         # Attendance calendar: scheduled vs marked status + parent isolation
         cal = c.get(f"/students/{sid}/attendance-calendar", headers=h).json()
