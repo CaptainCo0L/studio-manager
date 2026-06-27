@@ -6,7 +6,7 @@ from ..deps import get_current_user, require_staff
 from ..models import Payment, Student, User
 from ..notify import send_notification
 from ..routers.students import _visible_student_ids
-from ..schemas import PaymentCreate, PaymentOut
+from ..schemas import PaymentCreate, PaymentInvoiceOut, PaymentOut
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -26,6 +26,24 @@ def list_payments(
     if student_id:
         q = q.filter(Payment.student_id == student_id)
     return q.order_by(Payment.id.desc()).all()
+
+
+@router.get("/{payment_id}", response_model=PaymentInvoiceOut)
+def get_payment(payment_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    p = db.get(Payment, payment_id)
+    visible = _visible_student_ids(db, user)
+    # 404 (not 403) when out of scope: don't leak existence
+    if p is None or (visible is not None and p.student_id not in visible):
+        raise HTTPException(status_code=404, detail="Payment not found")
+    student = db.get(Student, p.student_id) if p.student_id else None
+    return PaymentInvoiceOut(
+        id=p.id, student_id=p.student_id, amount=float(p.amount), method=p.method,
+        session_id=p.session_id, note=p.note, created_at=p.created_at,
+        student_name=student.name if student else None,
+        guardian_name=student.guardian_name if student else None,
+        guardian_phone=student.guardian_phone if student else None,
+        guardian_email=student.guardian_email if student else None,
+    )
 
 
 @router.post("", response_model=PaymentOut, status_code=201)

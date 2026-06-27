@@ -121,6 +121,10 @@ A **session** is one class occurrence. Three types:
 - Enter **amount** and **method** (cash / card / UPI / bank transfer / other).
 - Optionally tag a **student** and add a **note**.
 
+Every payment has a printable **invoice** — recording one opens it automatically,
+or click any payment row (**Invoice →**). Use **Download PDF** to print or save it.
+The studio name/address on the invoice header comes from **Studio Details** (admin only).
+
 If the student has a guardian email on file, a **receipt is emailed
 automatically** (only when email/SMTP is configured — see README).
 

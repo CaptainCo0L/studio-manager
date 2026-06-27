@@ -172,6 +172,29 @@ class PaymentOut(ORM):
     created_at: datetime
 
 
+class PaymentInvoiceOut(PaymentOut):
+    student_name: str | None
+    guardian_name: str | None
+    guardian_phone: str | None
+    guardian_email: str | None
+
+
+# ---- Studio settings ----
+class StudioSettingsOut(ORM):
+    id: int
+    studio_name: str
+    address: str | None
+    phone: str | None
+    email: str | None
+
+
+class StudioSettingsUpdate(BaseModel):
+    studio_name: str | None = None
+    address: str | None = None
+    phone: str | None = None
+    email: str | None = None
+
+
 # ---- Global search ----
 class SearchHit(BaseModel):
     id: int

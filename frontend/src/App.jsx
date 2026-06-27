@@ -10,8 +10,10 @@ import Tutors from "./pages/Tutors";
 import Sessions from "./pages/Sessions";
 import SessionDetail from "./pages/SessionDetail";
 import Payments from "./pages/Payments";
+import PaymentInvoice from "./pages/PaymentInvoice";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
+import Settings from "./pages/Settings";
 import Account from "./pages/Account";
 import Audit from "./pages/Audit";
 import GlobalSearch from "./components/GlobalSearch";
@@ -31,6 +33,7 @@ const NAV = [
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
   { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
+  { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/audit", label: "Audit", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
   { to: "/tutor/sessions", label: "My Sessions", roles: ["tutor"] },
@@ -99,7 +102,7 @@ function Layout({ children }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen md:block">{sidebar}</aside>
+      <aside className="sticky top-0 hidden h-screen md:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {open && (
@@ -111,7 +114,7 @@ function Layout({ children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden">
+        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
           <button className="btn-ghost px-2 py-1" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
           <span className="font-display text-lg font-semibold text-clay">Studio Manager</span>
         </header>
@@ -144,8 +147,10 @@ export default function App() {
       <Route path="/sessions" element={<Guard roles={staff}><Sessions /></Guard>} />
       <Route path="/sessions/:id" element={<Guard roles={staff}><SessionDetail /></Guard>} />
       <Route path="/payments" element={<Guard roles={staff}><Payments /></Guard>} />
+      <Route path="/payments/:id" element={<Guard roles={staff}><PaymentInvoice /></Guard>} />
       <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
+      <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
       <Route path="/audit" element={<Guard roles={["admin"]}><Audit /></Guard>} />
       <Route path="/account" element={<Guard><Account /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
