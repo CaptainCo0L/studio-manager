@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Account from "./pages/Account";
 import Audit from "./pages/Audit";
 import GlobalSearch from "./components/GlobalSearch";
+import ThemeToggle from "./components/ThemeToggle";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
@@ -70,7 +71,7 @@ function Layout({ children }) {
           end={n.to === "/"}
           onClick={() => setOpen(false)}
           className={({ isActive }) =>
-            `rounded-md px-3 py-2 font-medium transition-colors ${isActive ? "bg-terracotta text-paper" : "text-muted hover:bg-ink/5 hover:text-ink"}`
+            `rounded-md px-3 py-2 font-medium transition-colors ${isActive ? "bg-terracotta text-white" : "text-muted hover:bg-ink/5 hover:text-ink"}`
           }
         >
           {n.label}
@@ -90,6 +91,7 @@ function Layout({ children }) {
       <div className="border-t border-ink/10 px-4 py-3 text-sm">
         <div className="mb-2 truncate text-muted">{user.email}</div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link to="/account" onClick={() => setOpen(false)} className="btn-ghost px-2 py-2" title="My account" aria-label="My account">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="3" />
