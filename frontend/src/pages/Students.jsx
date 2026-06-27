@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, useApi } from "../ui";
+import { Page, EntityCard, Stagger, useApi } from "../ui";
 
 export default function Students() {
   const [search, setSearch] = useState("");
@@ -36,18 +35,21 @@ export default function Students() {
       )}
 
       {list.error && <div className="mb-3 text-sm text-red-700">{list.error}</div>}
-      <Table
-        columns={["Name", "Guardian", "Phone", ""]}
-        rows={list.data || []}
-        render={(s) => (
-          <>
-            <td className="td font-medium">{s.name}</td>
-            <td className="td">{s.guardian_name || "—"}</td>
-            <td className="td">{s.guardian_phone || "—"}</td>
-            <td className="td text-right"><Link className="text-terracotta hover:underline" to={`/students/${s.id}`}>Open</Link></td>
-          </>
-        )}
-      />
+      {(list.data || []).length ? (
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {(list.data || []).map((s) => (
+            <EntityCard
+              key={s.id}
+              to={`/students/${s.id}`}
+              initial={(s.name || "?").charAt(0).toUpperCase()}
+              title={s.name}
+              lines={[s.guardian_name || "—", s.guardian_phone || "—"]}
+            />
+          ))}
+        </Stagger>
+      ) : (
+        <div className="card text-sm text-muted">No students yet.</div>
+      )}
     </Page>
   );
 }

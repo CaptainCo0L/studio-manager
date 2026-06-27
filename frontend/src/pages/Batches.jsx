@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, Table, useApi } from "../ui";
+import { Page, EntityCard, Stagger, useApi } from "../ui";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // index = Mon0..Sun6
 
@@ -68,19 +68,25 @@ export default function Batches() {
         </form>
       )}
 
-      <Table
-        columns={["Name", "Days", "Time", "Students", ""]}
-        rows={list.data || []}
-        render={(b) => (
-          <>
-            <td className="td font-medium">{b.name}</td>
-            <td className="td">{b.weekly_days.split(",").filter(Boolean).map((d) => DAYS[d]).join(", ") || "—"}</td>
-            <td className="td">{b.start_time ? `${b.start_time}–${b.end_time || ""}` : "—"}</td>
-            <td className="td">{b.student_count}</td>
-            <td className="td text-right"><button className="btn-ghost" onClick={() => generate(b)}>Generate sessions</button></td>
-          </>
-        )}
-      />
+      {(list.data || []).length ? (
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(list.data || []).map((b) => (
+            <EntityCard
+              key={b.id}
+              initial={(b.name || "?").charAt(0).toUpperCase()}
+              title={b.name}
+              badge={<span className="shrink-0 rounded-full bg-sage/20 px-2 py-0.5 text-xs text-ink/70">{b.student_count} students</span>}
+              lines={[
+                b.weekly_days.split(",").filter(Boolean).map((d) => DAYS[d]).join(", ") || "No days set",
+                b.start_time ? `${b.start_time}–${b.end_time || ""}` : "No time set",
+              ]}
+              footer={<button className="btn-ghost text-sm" onClick={() => generate(b)}>Generate sessions</button>}
+            />
+          ))}
+        </Stagger>
+      ) : (
+        <div className="card text-sm text-muted">No batches yet.</div>
+      )}
     </Page>
   );
 }

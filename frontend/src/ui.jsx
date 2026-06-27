@@ -44,8 +44,9 @@ export function Card({ hover = false, className = "", children }) {
   );
 }
 
-// Gallery tile for browse pages. initial = avatar letter, lines = fact strings.
-export function EntityCard({ to, title, initial, lines = [], badge }) {
+// Gallery tile for browse pages. initial = avatar letter, lines = fact strings,
+// footer = optional action row (rendered below the facts; omit `to` when present).
+export function EntityCard({ to, title, initial, lines = [], badge, footer }) {
   const inner = (
     <Card hover={!!to} className="flex h-full gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-terracotta/15 font-display text-lg font-semibold text-clay" aria-hidden="true">
@@ -59,6 +60,7 @@ export function EntityCard({ to, title, initial, lines = [], badge }) {
         {lines.map((l, i) => (
           <div key={i} className="truncate text-sm text-muted">{l}</div>
         ))}
+        {footer && <div className="mt-2">{footer}</div>}
       </div>
     </Card>
   );

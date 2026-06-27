@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, Table, inr, useApi } from "../ui";
+import { Page, EntityCard, Stagger, inr, useApi } from "../ui";
 
 export default function Tutors() {
   const list = useApi(() => api.get("/tutors"));
@@ -40,19 +40,26 @@ export default function Tutors() {
         </form>
       )}
 
-      <Table
-        columns={["Name", "Contact", "Rate", "Status", ""]}
-        rows={list.data || []}
-        render={(t) => (
-          <>
-            <td className="td font-medium">{t.name}{t.is_guest && <span className="ml-2 rounded bg-sage/20 px-1 text-xs">guest</span>}</td>
-            <td className="td">{t.phone || t.email || "—"}</td>
-            <td className="td">{t.default_rate ? inr(t.default_rate) : "—"}</td>
-            <td className="td">{t.is_active ? "Active" : "Inactive"}</td>
-            <td className="td text-right">{t.is_active && <button className="text-red-700 hover:underline" onClick={() => deactivate(t)}>Deactivate</button>}</td>
-          </>
-        )}
-      />
+      {(list.data || []).length ? (
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(list.data || []).map((t) => (
+            <EntityCard
+              key={t.id}
+              initial={(t.name || "?").charAt(0).toUpperCase()}
+              title={t.name}
+              badge={t.is_guest ? <span className="shrink-0 rounded-full bg-ochre/20 px-2 py-0.5 text-xs text-clay">Guest</span> : null}
+              lines={[
+                t.phone || t.email || "No contact",
+                t.default_rate ? `Rate ${inr(t.default_rate)}` : "No default rate",
+                t.is_active ? "Active" : "Inactive",
+              ]}
+              footer={t.is_active && <button className="text-sm text-red-700 hover:underline" onClick={() => deactivate(t)}>Deactivate</button>}
+            />
+          ))}
+        </Stagger>
+      ) : (
+        <div className="card text-sm text-muted">No tutors yet.</div>
+      )}
     </Page>
   );
 }
