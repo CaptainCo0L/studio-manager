@@ -46,21 +46,46 @@ function UpcomingSessions() {
   );
 }
 
-function RecentPayments() {
+function RecentPayments({ students }) {
   const payments = useApi(() => api.get("/payments"));
+  const nameOf = (sid) => (students || []).find((s) => s.id === sid)?.name || (sid ? `#${sid}` : "—");
   const rows = (payments.data || []).slice(0, 5);
   return (
     <Panel title="Recent payments" link="/payments">
       {rows.length ? (
         <ul className="divide-y divide-ink/5 text-sm">
           {rows.map((p) => (
-            <li key={p.id} className="flex justify-between py-2">
-              <span className="capitalize text-muted">{p.method}</span>
+            <li key={p.id} className="flex items-center justify-between py-2">
+              <div>
+                <div className="text-ink">{nameOf(p.student_id)}</div>
+                <div className="text-xs capitalize text-muted">{p.method} · {p.created_at?.slice(0, 10)}</div>
+              </div>
               <span className="font-medium">{inr(p.amount)}</span>
             </li>
           ))}
         </ul>
       ) : <p className="text-sm text-muted">No payments yet.</p>}
+    </Panel>
+  );
+}
+
+function BatchEnrollment({ batches }) {
+  const rows = [...(batches || [])].sort((a, b) => a.student_count - b.student_count);
+  return (
+    <Panel title="Batch enrollment" link="/batches">
+      {rows.length ? (
+        <ul className="divide-y divide-ink/5 text-sm">
+          {rows.map((b) => (
+            <li key={b.id} className="flex items-center justify-between py-2">
+              <Link className="hover:underline" to="/batches">{b.name}</Link>
+              <span className="flex items-center gap-2">
+                {b.student_count === 0 && <span className="rounded-full bg-terracotta/15 px-1.5 text-xs text-clay">empty</span>}
+                <span className="font-medium">{b.student_count} {b.student_count === 1 ? "student" : "students"}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-sm text-muted">No batches yet.</p>}
     </Panel>
   );
 }
@@ -213,8 +238,8 @@ function StaffDashboard() {
         <AttendanceSnapshot />
         <OutstandingFees students={students.data} />
         <CollectionProgress fees={fees.data} />
-        <UpcomingSessions />
-        <RecentPayments />
+        <BatchEnrollment batches={batches.data} />
+        <RecentPayments students={students.data} />
       </Animate>
     </Page>
   );
