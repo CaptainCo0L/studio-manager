@@ -4,7 +4,7 @@ import { Page, Table, useApi } from "../ui";
 const VERB = { POST: "Created", PUT: "Updated", DELETE: "Deleted", PATCH: "Updated" };
 const ENTITY = {
   students: "student", batches: "batch", tutors: "tutor", sessions: "session",
-  payments: "payment", users: "user", fees: "fee record", settings: "studio details",
+  payments: "payment", users: "user",
 };
 
 // Turn method + path into a readable action; fall back to the raw path.
@@ -12,7 +12,6 @@ function actionLabel(method, path) {
   const seg = path.split("/").filter(Boolean);
   const base = seg[0] || "";
   if (base === "attendance") return "Marked attendance";
-  if (base === "settings") return "Updated studio details";
   if (base === "sessions" && path.includes("/generate")) return "Generated sessions";
   if (base === "students" && path.endsWith("/enroll")) return "Enrolled student";
   if (base === "students" && path.endsWith("/unenroll")) return "Unenrolled student";

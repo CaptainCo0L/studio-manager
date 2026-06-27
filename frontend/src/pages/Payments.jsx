@@ -5,7 +5,6 @@ import { Page, Table, inr, useApi } from "../ui";
 export default function Payments() {
   const list = useApi(() => api.get("/payments"));
   const students = useApi(() => api.get("/students"));
-  const invoices = useApi(() => api.get("/fees/invoices?unpaid=true"));
   const [form, setForm] = useState(null);
 
   async function create(e) {
@@ -14,12 +13,10 @@ export default function Payments() {
       amount: Number(form.amount),
       method: form.method,
       student_id: form.student_id ? Number(form.student_id) : null,
-      invoice_id: form.invoice_id ? Number(form.invoice_id) : null,
       note: form.note || null,
     });
     setForm(null);
     list.reload();
-    invoices.reload();
   }
 
   const nameOf = (sid) => (students.data || []).find((s) => s.id === sid)?.name || (sid ? `#${sid}` : "—");
@@ -31,10 +28,6 @@ export default function Payments() {
           <input className="input" type="number" step="0.01" placeholder="Amount" required value={form.amount || ""} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
           <select className="input" value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
             {["cash", "card", "upi", "bank_transfer", "other"].map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
-          <select className="input" value={form.invoice_id || ""} onChange={(e) => setForm({ ...form, invoice_id: e.target.value })}>
-            <option value="">Apply to invoice (optional)…</option>
-            {(invoices.data || []).map((i) => <option key={i.id} value={i.id}>#{i.id} · {nameOf(i.student_id)} · bal {inr(i.balance)}</option>)}
           </select>
           <select className="input" value={form.student_id || ""} onChange={(e) => setForm({ ...form, student_id: e.target.value })}>
             <option value="">Student (optional)…</option>
@@ -54,7 +47,7 @@ export default function Payments() {
           { label: "Student", sort: (p) => nameOf(p.student_id) },
           { label: "Amount", sort: (p) => Number(p.amount) },
           { label: "Method", sort: (p) => p.method },
-          { label: "Invoice", sort: (p) => p.invoice_id ?? p.session_id ?? 0 },
+          { label: "Session", sort: (p) => p.session_id ?? 0 },
           { label: "When", sort: (p) => p.created_at },
         ]}
         rows={list.data || []}
@@ -64,7 +57,7 @@ export default function Payments() {
             <td className="td">{nameOf(p.student_id)}</td>
             <td className="td font-medium">{inr(p.amount)}</td>
             <td className="td">{p.method}</td>
-            <td className="td">{p.invoice_id ? `#${p.invoice_id}` : p.session_id ? `session #${p.session_id}` : "—"}</td>
+            <td className="td">{p.session_id ? `session #${p.session_id}` : "—"}</td>
             <td className="td">{p.created_at?.slice(0, 10)}</td>
           </>
         )}

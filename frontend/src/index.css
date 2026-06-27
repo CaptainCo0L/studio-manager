@@ -24,17 +24,6 @@
   --muted: 165 150 132;
 }
 
-/* The printable invoice always renders dark-on-white — on screen and in print, in either theme. */
-.invoice-sheet {
-  --paper: 255 253 248;
-  --terracotta: 189 91 61;
-  --clay: 143 63 40;
-  --sage: 126 139 104;
-  --ochre: 217 160 78;
-  --ink: 43 37 33;
-  --muted: 111 101 87;
-}
-
 @layer base {
   body {
     @apply bg-canvas font-sans text-ink antialiased;
@@ -75,17 +64,6 @@
   }
   .pigment-band > span {
     @apply flex-1;
-  }
-}
-
-@media print {
-  body {
-    background: #fff;
-  }
-  /* let the invoice sheet use the full page when printing */
-  main {
-    padding: 0 !important;
-    max-width: none !important;
   }
 }
 

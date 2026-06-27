@@ -153,65 +153,11 @@ class RosterRow(AttendanceOut):
     student_name: str
 
 
-# ---- Fees ----
-class FeeStructureCreate(BaseModel):
-    batch_id: int
-    name: str
-    amount: Decimal = Field(gt=0)  # Decimal: exact money; gt=0: no negative/zero fees
-    period: str = "monthly"
-    auto_invoice: bool = False  # invoice all enrolled students
-
-
-class FeeStructureOut(ORM):
-    id: int
-    batch_id: int
-    name: str
-    amount: float
-    period: str
-
-
-class InvoiceCreate(BaseModel):
-    student_id: int
-    fee_structure_id: int | None = None
-    amount_due: Decimal = Field(gt=0)
-    due_date: date | None = None
-
-
-class InvoiceOut(ORM):
-    id: int
-    student_id: int
-    fee_structure_id: int | None
-    amount_due: float
-    amount_paid: float
-    balance: float
-    status: str
-    due_date: date | None
-    created_at: datetime
-
-
-class PaymentLine(BaseModel):
-    id: int
-    amount: float
-    method: str
-    created_at: datetime
-
-
-class InvoiceDetailOut(InvoiceOut):
-    student_name: str
-    guardian_name: str | None
-    guardian_phone: str | None
-    guardian_email: str | None
-    fee_name: str | None  # fee structure name, if linked
-    fee_period: str | None
-    payments: list[PaymentLine]
-
-
 # ---- Payments ----
 class PaymentCreate(BaseModel):
     amount: Decimal = Field(gt=0)
     method: str  # cash|card|upi|bank_transfer|other
     student_id: int | None = None
-    invoice_id: int | None = None
     session_id: int | None = None
     note: str | None = None
 
@@ -221,26 +167,9 @@ class PaymentOut(ORM):
     student_id: int | None
     amount: float
     method: str
-    invoice_id: int | None
     session_id: int | None
     note: str | None
     created_at: datetime
-
-
-# ---- Studio settings ----
-class StudioSettingsOut(ORM):
-    id: int
-    studio_name: str
-    address: str | None
-    phone: str | None
-    email: str | None
-
-
-class StudioSettingsUpdate(BaseModel):
-    studio_name: str | None = None
-    address: str | None = None
-    phone: str | None = None
-    email: str | None = None
 
 
 # ---- Global search ----

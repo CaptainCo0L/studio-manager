@@ -9,19 +9,14 @@ import Batches from "./pages/Batches";
 import Tutors from "./pages/Tutors";
 import Sessions from "./pages/Sessions";
 import SessionDetail from "./pages/SessionDetail";
-import Fees from "./pages/Fees";
 import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
-import Settings from "./pages/Settings";
 import Account from "./pages/Account";
 import Audit from "./pages/Audit";
 import GlobalSearch from "./components/GlobalSearch";
 import ThemeToggle from "./components/ThemeToggle";
-import InvoiceDetail from "./pages/InvoiceDetail";
-import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
-import MyFees from "./pages/MyFees";
 import TutorSessions from "./pages/TutorSessions";
 import TutorSessionDetail from "./pages/TutorSessionDetail";
 import TutorEarnings from "./pages/TutorEarnings";
@@ -33,14 +28,11 @@ const NAV = [
   { to: "/batches", label: "Batches", roles: ["admin", "staff"] },
   { to: "/tutors", label: "Tutors", roles: ["admin", "staff"] },
   { to: "/sessions", label: "Sessions", roles: ["admin", "staff"] },
-  { to: "/fees", label: "Fees", roles: ["admin", "staff"] },
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
   { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
-  { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/audit", label: "Audit", roles: ["admin"] },
   { to: "/my-sessions", label: "My Sessions", roles: ["parent"] },
-  { to: "/my-fees", label: "My Fees", roles: ["parent"] },
   { to: "/tutor/sessions", label: "My Sessions", roles: ["tutor"] },
   { to: "/tutor/earnings", label: "My Earnings", roles: ["tutor"] },
 ];
@@ -107,7 +99,7 @@ function Layout({ children }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen md:block print:hidden">{sidebar}</aside>
+      <aside className="sticky top-0 hidden h-screen md:block">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {open && (
@@ -119,7 +111,7 @@ function Layout({ children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
+        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden">
           <button className="btn-ghost px-2 py-1" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
           <span className="font-display text-lg font-semibold text-clay">Studio Manager</span>
         </header>
@@ -151,17 +143,12 @@ export default function App() {
       <Route path="/tutors" element={<Guard roles={staff}><Tutors /></Guard>} />
       <Route path="/sessions" element={<Guard roles={staff}><Sessions /></Guard>} />
       <Route path="/sessions/:id" element={<Guard roles={staff}><SessionDetail /></Guard>} />
-      <Route path="/fees" element={<Guard roles={staff}><Fees /></Guard>} />
-      <Route path="/fees/structures/:id" element={<Guard roles={staff}><FeeStructureDetail /></Guard>} />
-      <Route path="/fees/invoices/:id" element={<Guard><InvoiceDetail /></Guard>} />
       <Route path="/payments" element={<Guard roles={staff}><Payments /></Guard>} />
       <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
-      <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
       <Route path="/audit" element={<Guard roles={["admin"]}><Audit /></Guard>} />
       <Route path="/account" element={<Guard><Account /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
-      <Route path="/my-fees" element={<Guard roles={["parent"]}><MyFees /></Guard>} />
       <Route path="/tutor/sessions" element={<Guard roles={["tutor"]}><TutorSessions /></Guard>} />
       <Route path="/tutor/sessions/:id" element={<Guard roles={["tutor"]}><TutorSessionDetail /></Guard>} />
       <Route path="/tutor/earnings" element={<Guard roles={["tutor"]}><TutorEarnings /></Guard>} />

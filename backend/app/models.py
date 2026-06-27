@@ -109,30 +109,6 @@ class Attendance(Base):
     status: Mapped[str] = mapped_column(String)  # present|absent
 
 
-class FeeStructure(Base):
-    __tablename__ = "fee_structures"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"))
-    name: Mapped[str] = mapped_column(String)
-    amount: Mapped[float] = mapped_column(Numeric(10, 2))
-    period: Mapped[str] = mapped_column(String, default="monthly")
-
-
-class FeeInvoice(Base):
-    __tablename__ = "fee_invoices"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
-    fee_structure_id: Mapped[int | None] = mapped_column(
-        ForeignKey("fee_structures.id"), nullable=True
-    )
-    amount_due: Mapped[float] = mapped_column(Numeric(10, 2))
-    amount_paid: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
-    balance: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
-    status: Mapped[str] = mapped_column(String, default="unpaid")  # unpaid|partial|paid
-    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
-
 class Payment(Base):
     __tablename__ = "payments"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -141,23 +117,11 @@ class Payment(Base):
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2))
     method: Mapped[str] = mapped_column(String)  # cash|card|upi|bank_transfer|other
-    invoice_id: Mapped[int | None] = mapped_column(
-        ForeignKey("fee_invoices.id"), nullable=True
-    )
     session_id: Mapped[int | None] = mapped_column(
         ForeignKey("sessions.id"), nullable=True
     )
     note: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
-
-class StudioSettings(Base):
-    __tablename__ = "studio_settings"
-    id: Mapped[int] = mapped_column(primary_key=True)  # always 1 (singleton)
-    studio_name: Mapped[str] = mapped_column(String, default="")
-    address: Mapped[str | None] = mapped_column(String, nullable=True)
-    phone: Mapped[str | None] = mapped_column(String, nullable=True)
-    email: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
 class AuditLog(Base):

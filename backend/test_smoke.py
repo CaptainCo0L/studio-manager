@@ -31,10 +31,9 @@ def run():
         gen = c.post(f"/sessions/{bid}/generate", json={"weeks": 2}, headers=h).json()
         assert len(gen) == 2, gen
 
-        iid = c.post("/fees/invoices", json={"student_id": sid, "amount_due": 1500}, headers=h).json()["id"]
-        assert c.post("/payments", json={"amount": 1000, "method": "upi", "invoice_id": iid}, headers=h).status_code == 201
-        inv = c.get("/fees/invoices", headers=h).json()[0]
-        assert inv["balance"] == 500 and inv["status"] == "partial", inv
+        # Payment ledger (no invoices): record a standalone payment
+        assert c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).status_code == 201
+        assert any(p["amount"] == 1000 for p in c.get("/payments", headers=h).json())
 
         # Parent isolation
         other = c.post("/students", json={"name": "Hidden Kid"}, headers=h).json()
@@ -58,27 +57,10 @@ def run():
 
         # Money validation: amounts must be > 0
         assert c.post("/payments", json={"amount": -50, "method": "cash"}, headers=h).status_code == 422
-        assert c.post("/fees/invoices", json={"student_id": sid, "amount_due": 0}, headers=h).status_code == 422
 
-        # Studio settings: auto-create on read, admin updates, parent forbidden
-        s = c.get("/settings", headers=h).json()
-        assert s["id"] == 1 and "studio_name" in s, s
-        assert c.put("/settings", json={"studio_name": "Aswin Art Studio"}, headers=h).json()["studio_name"] == "Aswin Art Studio"
-        assert c.put("/settings", json={"studio_name": "Hacked"}, headers=ph).status_code == 403
-
-        # Invoice detail: composite payload + parent isolation
-        det = c.get(f"/fees/invoices/{iid}", headers=h).json()
-        assert det["student_name"] == "Asha" and det["balance"] == 500, det
-        assert len(det["payments"]) == 1 and det["payments"][0]["amount"] == 1000, det
-        assert c.get(f"/fees/invoices/{iid}", headers=ph).status_code == 200  # parent sees own
-        oiid = c.post("/fees/invoices", json={"student_id": other["id"], "amount_due": 200}, headers=h).json()["id"]
-        assert c.get(f"/fees/invoices/{oiid}", headers=ph).status_code == 404  # not own → hidden
-
-        # Structure detail + fee_structure_id filter
-        fsid = c.post("/fees/structures", json={"batch_id": bid, "name": "Term fee", "amount": 900, "auto_invoice": True}, headers=h).json()["id"]
-        assert c.get(f"/fees/structures/{fsid}", headers=h).json()["name"] == "Term fee"
-        finv = c.get(f"/fees/invoices?fee_structure_id={fsid}", headers=h).json()
-        assert len(finv) == 1 and finv[0]["fee_structure_id"] == fsid, finv
+        # Fees and studio settings are removed
+        assert c.get("/fees/structures", headers=h).status_code == 404
+        assert c.get("/settings", headers=h).status_code == 404
 
         # Attendance calendar: scheduled vs marked status + parent isolation
         cal = c.get(f"/students/{sid}/attendance-calendar", headers=h).json()
