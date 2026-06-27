@@ -7,7 +7,6 @@ const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
   late: { icon: "✓", word: "Late", cls: "text-ochre" },
   absent: { icon: "✗", word: "", cls: "text-red-600" },
-  excused: { icon: "✗", word: "Excused", cls: "text-ink/40" },
 };
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -82,7 +81,6 @@ function AttendanceCalendar({ items }) {
         <span className="flex items-center gap-1"><span className="text-base font-bold text-sage">✓</span> Present</span>
         <span className="flex items-center gap-1"><span className="text-base font-bold text-ochre">✓</span> Late</span>
         <span className="flex items-center gap-1"><span className="text-base font-bold text-red-600">✗</span> Absent</span>
-        <span className="flex items-center gap-1"><span className="text-base font-bold text-ink/40">✗</span> Excused</span>
         <span className="flex items-center gap-1"><span className="inline-block h-3 w-4 rounded-sm border border-ochre/40 bg-ochre/15" /> Scheduled</span>
       </div>
     </div>

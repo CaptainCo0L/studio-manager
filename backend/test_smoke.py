@@ -98,6 +98,9 @@ def run():
         roster = c.get(f"/attendance/roster/{s1}", headers=h).json()
         assert any(r["student_id"] == sid and r["status"] == "present" for r in roster), roster
 
+        # 'excused' is no longer a valid status
+        assert c.post("/attendance/bulk", json={"session_id": s0, "items": [{"student_id": sid, "status": "excused"}]}, headers=h).status_code == 400
+
     print("smoke OK")
 
 
