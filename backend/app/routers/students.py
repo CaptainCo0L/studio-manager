@@ -1,10 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user, require_staff
-from ..models import Batch, BatchEnrollment, ParentLink, Student, User
-from ..schemas import BatchOut, EnrollIn, StudentCreate, StudentOut
+from ..models import (
+    Attendance,
+    Batch,
+    BatchEnrollment,
+    ParentLink,
+    Session as ClassSession,
+    Student,
+    User,
+)
+from ..schemas import AttendanceCalendarItem, BatchOut, EnrollIn, StudentCreate, StudentOut
 
 router = APIRouter(prefix="/students", tags=["students"])
 
@@ -59,6 +68,39 @@ def student_batches(
         .order_by(Batch.name)
         .all()
     )
+
+
+@router.get("/{student_id}/attendance-calendar", response_model=list[AttendanceCalendarItem])
+def attendance_calendar(
+    student_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    _get_visible(db, user, student_id)  # 404 for parents on a non-visible student
+    batch_ids = [
+        b
+        for (b,) in db.query(BatchEnrollment.batch_id)
+        .filter(BatchEnrollment.student_id == student_id, BatchEnrollment.is_active.is_(True))
+        .all()
+    ]
+    att_session_ids = db.query(Attendance.session_id).filter(Attendance.student_id == student_id)
+    sessions = (
+        db.query(ClassSession)
+        .filter(or_(ClassSession.batch_id.in_(batch_ids), ClassSession.id.in_(att_session_ids)))
+        .order_by(ClassSession.date)
+        .all()
+    )
+    status_by_session = {
+        a.session_id: a.status
+        for a in db.query(Attendance).filter(Attendance.student_id == student_id).all()
+    }
+    return [
+        AttendanceCalendarItem(
+            date=s.date,
+            session_id=s.id,
+            session_type=s.session_type,
+            status=status_by_session.get(s.id),
+        )
+        for s in sessions
+    ]
 
 
 @router.post("", response_model=StudentOut, status_code=201)

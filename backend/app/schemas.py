@@ -90,6 +90,13 @@ class EnrollIn(BaseModel):
     batch_id: int
 
 
+class AttendanceCalendarItem(BaseModel):
+    date: date
+    session_id: int
+    session_type: str  # batch|private|dropin
+    status: str | None  # present|late|absent|excused, or None when not yet marked
+
+
 # ---- Sessions ----
 class SessionBase(BaseModel):
     session_type: str  # batch|private|dropin
