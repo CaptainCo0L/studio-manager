@@ -132,50 +132,6 @@ function AttendanceSnapshot() {
   );
 }
 
-function OutstandingFees({ students }) {
-  const invoices = useApi(() => api.get("/fees/invoices?unpaid=true"));
-  const nameOf = (sid) => (students || []).find((s) => s.id === sid)?.name || `#${sid}`;
-  const today = todayISO();
-  const rows = invoices.data || [];
-  const total = rows.reduce((sum, i) => sum + Number(i.balance), 0);
-  const top = [...rows].sort((a, b) => b.balance - a.balance).slice(0, 5);
-  return (
-    <Panel title="Outstanding fees" link="/fees">
-      {rows.length ? (
-        <>
-          <div className="mb-2 text-sm text-muted">{rows.length} unpaid · <span className="font-medium text-ink">{inr(total)}</span> owed</div>
-          <ul className="divide-y divide-ink/5 text-sm">
-            {top.map((i) => (
-              <li key={i.id} className="flex items-center justify-between py-2">
-                <Link className="hover:underline" to={`/fees/invoices/${i.id}`}>
-                  {nameOf(i.student_id)}
-                  {i.due_date && i.due_date < today && <span className="ml-2 rounded-full bg-terracotta/15 px-1.5 text-xs text-clay">overdue</span>}
-                </Link>
-                <span className="font-medium">{inr(i.balance)}</span>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : <p className="text-sm text-muted">All paid up.</p>}
-    </Panel>
-  );
-}
-
-function CollectionProgress({ fees }) {
-  if (!fees) return <Panel title="Fee collection"><p className="text-sm text-muted">…</p></Panel>;
-  const invoiced = Number(fees.invoiced) || 0;
-  const collected = Number(fees.collected_on_invoices) || 0;
-  const pct = invoiced ? Math.round((collected / invoiced) * 100) : 0;
-  return (
-    <Panel title="Fee collection">
-      <div className="mb-2 text-sm text-muted">{inr(collected)} of {inr(invoiced)} invoiced <span className="font-medium text-ink">({pct}%)</span></div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-ink/10">
-        <div className="h-full rounded-full bg-sage" style={{ width: `${Math.min(100, pct)}%` }} />
-      </div>
-    </Panel>
-  );
-}
-
 export default function Dashboard() {
   const { user } = useAuth();
 
@@ -185,11 +141,9 @@ export default function Dashboard() {
         <Animate className="grid gap-4 lg:grid-cols-2">
           <UpcomingSessions />
           <Card>
-            <h2 className="mb-3 font-display text-lg font-semibold text-ink">Your fees</h2>
-            <div className="flex gap-2">
-              <Link className="btn" to="/my-sessions">My Sessions</Link>
-              <Link className="btn-ghost" to="/my-fees">My Fees</Link>
-            </div>
+            <h2 className="mb-3 font-display text-lg font-semibold text-ink">Your children's classes</h2>
+            <p className="mb-3 text-sm text-muted">View upcoming sessions and attendance.</p>
+            <Link className="btn" to="/my-sessions">My Sessions</Link>
           </Card>
         </Animate>
       </Page>
@@ -221,7 +175,8 @@ export default function Dashboard() {
 function StaffDashboard() {
   const students = useApi(() => api.get("/students"));
   const batches = useApi(() => api.get("/batches"));
-  const fees = useApi(() => api.get("/reports/fee-collection"));
+  const tutors = useApi(() => api.get("/tutors"));
+  const sessions = useApi(() => api.get("/sessions"));
 
   return (
     <Page title="Dashboard">
@@ -229,15 +184,13 @@ function StaffDashboard() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="Students" value={students.data?.length ?? "…"} accent="bg-terracotta" />
           <Stat label="Batches" value={batches.data?.length ?? "…"} accent="bg-sage" />
-          <Stat label="Collected" value={fees.data ? inr(fees.data.payments_total) : "…"} accent="bg-ochre" />
-          <Stat label="Outstanding" value={fees.data ? inr(fees.data.outstanding) : "…"} accent="bg-clay" />
+          <Stat label="Tutors" value={tutors.data?.length ?? "…"} accent="bg-ochre" />
+          <Stat label="Sessions" value={sessions.data?.length ?? "…"} accent="bg-clay" />
         </div>
       </Animate>
       <Animate delay={60} className="mt-6 grid gap-4 lg:grid-cols-2">
         <TodaysClasses batches={batches.data} />
         <AttendanceSnapshot />
-        <OutstandingFees students={students.data} />
-        <CollectionProgress fees={fees.data} />
         <BatchEnrollment batches={batches.data} />
         <RecentPayments students={students.data} />
       </Animate>

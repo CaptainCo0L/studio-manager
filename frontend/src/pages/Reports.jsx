@@ -3,29 +3,15 @@ import { Page, Table, inr, useApi } from "../ui";
 
 export default function Reports() {
   const attendance = useApi(() => api.get("/reports/attendance-summary"));
-  const fees = useApi(() => api.get("/reports/fee-collection"));
   const tutors = useApi(() => api.get("/reports/tutor-sessions"));
 
   return (
     <Page title="Reports">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="card">
-          <h2 className="mb-2 font-semibold">Attendance summary</h2>
-          {attendance.data && Object.keys(attendance.data).length
-            ? <ul className="text-sm">{Object.entries(attendance.data).map(([k, v]) => <li key={k} className="flex justify-between"><span className="capitalize">{k}</span><span>{v}</span></li>)}</ul>
-            : <p className="text-sm text-ink/60">No attendance yet.</p>}
-        </div>
-        <div className="card">
-          <h2 className="mb-2 font-semibold">Fee collection</h2>
-          {fees.data && (
-            <ul className="text-sm">
-              <li className="flex justify-between"><span>Invoiced</span><span>{inr(fees.data.invoiced)}</span></li>
-              <li className="flex justify-between"><span>Collected (invoices)</span><span>{inr(fees.data.collected_on_invoices)}</span></li>
-              <li className="flex justify-between"><span>All payments</span><span>{inr(fees.data.payments_total)}</span></li>
-              <li className="flex justify-between font-semibold"><span>Outstanding</span><span>{inr(fees.data.outstanding)}</span></li>
-            </ul>
-          )}
-        </div>
+      <div className="card max-w-md">
+        <h2 className="mb-2 font-semibold">Attendance summary</h2>
+        {attendance.data && Object.keys(attendance.data).length
+          ? <ul className="text-sm">{Object.entries(attendance.data).map(([k, v]) => <li key={k} className="flex justify-between"><span className="capitalize">{k}</span><span>{v}</span></li>)}</ul>
+          : <p className="text-sm text-ink/60">No attendance yet.</p>}
       </div>
 
       <h2 className="mb-2 mt-6 font-semibold">Tutor sessions</h2>

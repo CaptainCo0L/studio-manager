@@ -15,7 +15,7 @@ Self-hosted management app for an art class — recurring weekly **batches**, ad
 |--------|--------|
 | admin  | Everything, including user management |
 | staff  | Everything except user accounts |
-| parent | Read-only portal — only their linked children's sessions, attendance, fees, payments |
+| parent | Read-only portal — only their linked children's sessions and attendance |
 
 ## Quick start (local, Docker)
 

@@ -11,7 +11,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 ## Roles
 - **admin** — full access incl. user management.
 - **staff** — all except user accounts.
-- **parent** — read-only portal; sees only their own linked children's sessions, attendance, fees, payments.
+- **parent** — read-only portal; sees only their own linked children's sessions and attendance.
 - **tutor** — portal scoped to their own sessions; marks attendance for them and sees their own earnings/payout. Linked to a Tutor record via `Tutor.linked_user_id`. Isolation via `_visible_tutor_id()` in `routers/tutors.py`.
 
 ## Data model (SQLAlchemy)
@@ -23,9 +23,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - **ParentLink** — M:N parent-user↔student.
 - **Session** — one class occurrence. `session_type` = batch|private|dropin. Has date, optional times, `rate` (private/dropin), `tutor_id`, `batch_id`.
 - **Attendance** — per (session, student). status = present|absent. Unique on (session_id, student_id).
-- **FeeStructure** — fee template tied to a batch.
-- **FeeInvoice** — amount owed by a student (`amount_due`, `amount_paid`, `balance`).
-- **Payment** — cash|card|upi|bank_transfer|other. Optional `invoice_id` (updates paid balance) or `session_id` (private lesson).
+- **Payment** — cash|card|upi|bank_transfer|other. Standalone ledger; optional `student_id`, `session_id` (private lesson), `note`.
 - **Notification** — channel email|sms|whatsapp, status pending|sent|failed|disabled.
 
 ## API routes (prefix shown)
@@ -36,20 +34,18 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - `/students` — list (search, batch filter), get/create/update/delete; `/enroll`, `/unenroll`. Parents see only linked kids.
 - `/sessions` — list (filters: batch/tutor/date/student), create (auto-marks student present for private/dropin), `/{batch_id}/generate` (makes sessions for next N weeks from batch schedule).
 - `/attendance` — `/bulk` (mark roster), list (filters). Batch roster auto-fills from enrollment.
-- `/fees/structures` — create (optional auto-invoice all enrolled students), list.
-- `/fees/invoices` — list (student/unpaid filters), create.
-- `/payments` — list, create (updates invoice balance, emails receipt if guardian email present).
-- `/reports` — `attendance-summary`, `fee-collection`, `tutor-sessions` (counts + private earnings/payouts).
+- `/payments` — list, create (emails receipt if guardian email present).
+- `/reports` — `attendance-summary`, `tutor-sessions` (counts + private earnings/payouts), `my-earnings` (tutor's own).
 - `/notifications` — list, send.
 
 ## Notifications
 Pluggable providers. **Email (SMTP)** works once configured. **SMS (Twilio)** + **WhatsApp (Meta Business API)** activate when their `.env` creds are set; otherwise log as `disabled` (no error). Receipt auto-sent on payment when guardian email exists.
 
 ## Frontend pages
-Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance history, balance); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Fees (templates + invoices); Payments; Reports (+CSV); Users (admin); Parent: MySessions, MyFees. Auth + role guards in `App.jsx`.
+Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance calendar); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Payments; Reports; Users (admin); Audit (admin); global search; dark mode. Parent: MySessions. Tutor: My Sessions (mark attendance), My Earnings. Auth + role guards in `App.jsx`.
 
 ## Status
-- Backend: **complete, tested end-to-end** (login, batches, students, sessions, attendance, fees, payments, reports, parent isolation, CSV).
+- Backend: **complete, tested end-to-end** (login, batches, students, sessions, attendance, payments, reports, parent + tutor isolation, audit).
 - Frontend: all pages written; **not yet build-verified**.
 
 ## TODO (deployment)

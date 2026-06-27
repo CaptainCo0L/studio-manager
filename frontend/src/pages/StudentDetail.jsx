@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, inr, useApi } from "../ui";
+import { Page, Table, useApi } from "../ui";
 
 const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
@@ -87,15 +87,11 @@ function AttendanceCalendar({ items }) {
 
 export default function StudentDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const student = useApi(() => api.get(`/students/${id}`), [id]);
   const enrolled = useApi(() => api.get(`/students/${id}/batches`), [id]);
   const allBatches = useApi(() => api.get("/batches"));
-  const invoices = useApi(() => api.get(`/fees/invoices?student_id=${id}`), [id]);
   const calendar = useApi(() => api.get(`/students/${id}/attendance-calendar`), [id]);
   const [batchId, setBatchId] = useState("");
-
-  const balance = (invoices.data || []).reduce((s, i) => s + Number(i.balance), 0);
 
   async function enroll() {
     if (!batchId) return;
@@ -113,17 +109,11 @@ export default function StudentDetail() {
 
   return (
     <Page title={s.name}>
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="card md:col-span-2">
-          <h2 className="mb-2 font-semibold">Guardian</h2>
-          <p className="text-sm text-ink/70">{s.guardian_name || "—"}</p>
-          <p className="text-sm text-ink/70">{s.guardian_phone || "—"}</p>
-          <p className="text-sm text-ink/70">{s.guardian_email || "—"}</p>
-        </div>
-        <div className="card">
-          <div className="text-sm text-ink/60">Outstanding balance</div>
-          <div className="mt-1 text-2xl font-semibold">{inr(balance)}</div>
-        </div>
+      <div className="card">
+        <h2 className="mb-2 font-semibold">Guardian</h2>
+        <p className="text-sm text-ink/70">{s.guardian_name || "—"}</p>
+        <p className="text-sm text-ink/70">{s.guardian_phone || "—"}</p>
+        <p className="text-sm text-ink/70">{s.guardian_email || "—"}</p>
       </div>
 
       <h2 className="mb-2 mt-6 font-semibold">Batches</h2>
@@ -153,29 +143,6 @@ export default function StudentDetail() {
 
       <h2 className="mb-2 mt-6 font-semibold">Attendance</h2>
       {calendar.data ? <AttendanceCalendar items={calendar.data} /> : <div className="card text-sm text-muted">Loading…</div>}
-
-      <h2 className="mb-2 mt-6 font-semibold">Invoices</h2>
-      <Table
-        columns={[
-          { label: "Due", sort: (i) => Number(i.amount_due) },
-          { label: "Paid", sort: (i) => Number(i.amount_paid) },
-          { label: "Balance", sort: (i) => Number(i.balance) },
-          { label: "Status", sort: (i) => i.status },
-          "",
-        ]}
-        rows={invoices.data || []}
-        empty="No invoices."
-        onRowClick={(i) => navigate(`/fees/invoices/${i.id}`)}
-        render={(i) => (
-          <>
-            <td className="td">{inr(i.amount_due)}</td>
-            <td className="td">{inr(i.amount_paid)}</td>
-            <td className="td">{inr(i.balance)}</td>
-            <td className="td capitalize">{i.status}</td>
-            <td className="td text-right text-terracotta">Open →</td>
-          </>
-        )}
-      />
     </Page>
   );
 }

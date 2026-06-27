@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user, require_staff
-from ..models import FeeInvoice, Payment, Student, User
+from ..models import Payment, Student, User
 from ..notify import send_notification
 from ..routers.students import _visible_student_ids
 from ..schemas import PaymentCreate, PaymentOut
@@ -37,23 +37,10 @@ def create_payment(payload: PaymentCreate, db: Session = Depends(get_db), _=Depe
     payment = Payment(
         amount=payload.amount,
         method=payload.method,
-        invoice_id=payload.invoice_id,
         session_id=payload.session_id,
         note=payload.note,
         student_id=student_id,
     )
-
-    # Applying to an invoice updates its paid/balance/status
-    if payload.invoice_id:
-        inv = db.get(FeeInvoice, payload.invoice_id)
-        if not inv:
-            raise HTTPException(status_code=404, detail="Invoice not found")
-        # Numeric columns load as Decimal; payload.amount is Decimal — keep it exact
-        inv.amount_paid = inv.amount_paid + payload.amount
-        inv.balance = inv.amount_due - inv.amount_paid
-        inv.status = "paid" if inv.balance <= 0 else "partial"
-        payment.student_id = inv.student_id
-        student_id = inv.student_id
 
     db.add(payment)
     db.commit()

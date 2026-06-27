@@ -25,9 +25,9 @@ disable and recreate your account, or set a new one.
 |------|:---:|:---:|:---:|
 | Dashboard | ✅ | ✅ | ✅ (own view) |
 | Students, Batches, Tutors, Sessions | ✅ | ✅ | — |
-| Attendance, Fees, Payments, Reports | ✅ | ✅ | — |
-| Users (accounts) | ✅ | — | — |
-| My Sessions / My Fees | — | — | ✅ |
+| Attendance, Payments, Reports | ✅ | ✅ | — |
+| Users (accounts), Audit | ✅ | — | — |
+| My Sessions | — | — | ✅ |
 
 Parents see **only their own linked children's** data, and only for reading.
 
@@ -37,9 +37,9 @@ Parents see **only their own linked children's** data, and only for reading.
 
 The landing page after login.
 
-- **Staff/Admin:** counts of students and batches, total collected, and
-  outstanding balance, with quick links.
-- **Parent:** shortcuts to *My Sessions* and *My Fees*.
+- **Staff/Admin:** counts of students, batches, tutors, and sessions, plus
+  today's classes, an attendance snapshot, batch enrollment, and recent payments.
+- **Parent:** a shortcut to *My Sessions*.
 
 ---
 
@@ -53,11 +53,9 @@ auto-send payment receipts, so add it if you have it.
 
 **Open a student** (the *Open* link) to see their detail page:
 
-- **Outstanding balance** — sum of unpaid invoice balances.
 - **Batches** — enroll the student into a batch (pick from the dropdown →
   **Enroll**) or **Unenroll** from one.
-- **Attendance history** — every session the student was marked on.
-- **Invoices** — amounts due, paid, and status.
+- **Attendance** — a month calendar of their scheduled and attended sessions.
 
 ---
 
@@ -116,27 +114,11 @@ A **session** is one class occurrence. Three types:
 
 ---
 
-## 8. Fees
-
-Two parts on the **Fees** page:
-
-**Fee templates** — a named fee tied to a batch (e.g. "Monthly fee · ₹1500").
-When creating one, tick **Auto-invoice all enrolled students** to immediately
-raise an unpaid invoice for everyone currently in that batch.
-
-**Invoices** — an amount a student owes. Create one manually for a specific
-student (amount due + optional due date). Each invoice tracks **due / paid /
-balance** and a status of *unpaid → partial → paid* as payments come in.
-
----
-
-## 9. Payments
+## 8. Payments
 
 **Payments → + Record payment:**
 
 - Enter **amount** and **method** (cash / card / UPI / bank transfer / other).
-- Optionally **apply it to an unpaid invoice** — this reduces that invoice's
-  balance and updates its status automatically.
 - Optionally tag a **student** and add a **note**.
 
 If the student has a guardian email on file, a **receipt is emailed
@@ -147,21 +129,17 @@ Private-lesson payments are usually recorded from the **session** page instead
 
 ---
 
-## 10. Reports
+## 9. Reports
 
 The **Reports** page shows:
 
 - **Attendance summary** — totals by status.
-- **Fee collection** — invoiced, collected, total payments, and outstanding.
 - **Tutor sessions** — per tutor: session counts, private lessons, private
   earnings, and estimated payout (private sessions × default rate).
 
-**Export:** the **Students CSV** and **Payments CSV** buttons download
-spreadsheets you can open in Excel/Sheets.
-
 ---
 
-## 11. Users (admin only)
+## 10. Users (admin only)
 
 **Users → + New user:**
 
@@ -174,18 +152,17 @@ spreadsheets you can open in Excel/Sheets.
 
 ---
 
-## 12. The parent portal
+## 11. The parent portal
 
 Parents have a simplified, read-only view:
 
 - **My Sessions** — upcoming and past sessions for their child(ren).
-- **My Fees** — outstanding balance, invoices, and payment history.
 
 Parents cannot see other families' data or change anything.
 
 ---
 
-## 13. Notifications
+## 12. Notifications
 
 - **Email** receipts are sent on payment when SMTP is configured and the
   guardian email is on file.
@@ -203,8 +180,6 @@ Parents cannot see other families' data or change anything.
 | Set up a weekly class | Batches → + New batch |
 | Create this month's classes | Batches → Generate sessions |
 | Take attendance | Sessions → open a session → mark roster |
-| Charge monthly fees | Fees → template → Auto-invoice |
 | Record a payment | Payments → + Record payment |
 | Bill a private lesson | Sessions → open → Record payment |
-| See who owes money | Reports → Fee collection |
 | Give a parent access | Users → + New user → Parent |
