@@ -243,6 +243,19 @@ class StudioSettingsUpdate(BaseModel):
     email: str | None = None
 
 
+# ---- Global search ----
+class SearchHit(BaseModel):
+    id: int
+    label: str
+    sublabel: str | None = None
+
+
+class SearchOut(BaseModel):
+    students: list[SearchHit]
+    batches: list[SearchHit]
+    tutors: list[SearchHit]
+
+
 # ---- Notifications ----
 class NotificationOut(ORM):
     id: int
