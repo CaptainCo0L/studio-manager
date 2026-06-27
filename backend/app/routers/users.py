@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from ..auth import hash_password
+from ..auth import hash_password, verify_password
 from ..database import get_db
 from ..deps import get_current_user, require_admin
 from ..models import ParentLink, User
-from ..schemas import UserCreate, UserOut
+from ..schemas import MeUpdate, PasswordChange, UserCreate, UserOut
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -13,6 +13,30 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
     return user
+
+
+@router.put("/me", response_model=UserOut)
+def update_me(
+    payload: MeUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    clash = db.query(User).filter(User.email == payload.email, User.id != user.id).first()
+    if clash:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user.email = payload.email
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/me/password")
+def change_password(
+    payload: PasswordChange, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("", response_model=list[UserOut])

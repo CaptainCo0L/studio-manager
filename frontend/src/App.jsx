@@ -14,6 +14,7 @@ import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import Account from "./pages/Account";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import FeeStructureDetail from "./pages/FeeStructureDetail";
 import MySessions from "./pages/MySessions";
@@ -79,7 +80,15 @@ function Layout({ children }) {
       <div className="flex-1 overflow-y-auto px-3">{nav}</div>
       <div className="border-t border-ink/10 px-4 py-3 text-sm">
         <div className="mb-2 truncate text-muted">{user.email}</div>
-        <button className="btn-ghost w-full" onClick={() => { logout(); navigate("/login"); }}>Logout</button>
+        <div className="flex items-center gap-2">
+          <Link to="/account" onClick={() => setOpen(false)} className="btn-ghost px-2 py-2" title="My account" aria-label="My account">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </Link>
+          <button className="btn-ghost flex-1" onClick={() => { logout(); navigate("/login"); }}>Logout</button>
+        </div>
       </div>
     </div>
   );
@@ -138,6 +147,7 @@ export default function App() {
       <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
       <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
+      <Route path="/account" element={<Guard><Account /></Guard>} />
       <Route path="/my-sessions" element={<Guard roles={["parent"]}><MySessions /></Guard>} />
       <Route path="/my-fees" element={<Guard roles={["parent"]}><MyFees /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />

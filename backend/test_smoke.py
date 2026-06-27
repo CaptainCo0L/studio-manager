@@ -86,6 +86,14 @@ def run():
         assert by_sess.get(s0) == "present" and by_sess.get(s1) is None, cal
         assert c.get(f"/students/{other['id']}/attendance-calendar", headers=ph).status_code == 404
 
+        # Account self-service: change password (wrong current rejected), then change email
+        assert c.post("/users/me/password", json={"current_password": "nope", "new_password": "newpass1"}, headers=h).status_code == 400
+        assert c.post("/users/me/password", json={"current_password": "admin123", "new_password": "newpass1"}, headers=h).json()["ok"] is True
+        assert c.post("/auth/login", data={"username": "admin@example.com", "password": "newpass1"}).status_code == 200
+        assert c.put("/users/me", json={"email": "boss@example.com"}, headers=h).json()["email"] == "boss@example.com"
+        assert c.get("/users/me", headers=h).json()["email"] == "boss@example.com"  # token still valid
+        assert c.put("/users/me", json={"email": "parent@example.com"}, headers=h).status_code == 400  # taken
+
     print("smoke OK")
 
 
