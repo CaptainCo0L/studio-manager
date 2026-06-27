@@ -1,32 +1,13 @@
 import { api } from "../api";
 import { Page, Table, inr, useApi } from "../ui";
 
-// CSV endpoints need the auth header, so fetch then trigger a blob download.
-async function download(path, filename) {
-  const text = await api.get(path);
-  const url = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function Reports() {
   const attendance = useApi(() => api.get("/reports/attendance-summary"));
   const fees = useApi(() => api.get("/reports/fee-collection"));
   const tutors = useApi(() => api.get("/reports/tutor-sessions"));
 
   return (
-    <Page
-      title="Reports"
-      actions={
-        <>
-          <button className="btn-ghost" onClick={() => download("/reports/students.csv", "students.csv")}>Students CSV</button>
-          <button className="btn-ghost" onClick={() => download("/reports/payments.csv", "payments.csv")}>Payments CSV</button>
-        </>
-      }
-    >
+    <Page title="Reports">
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card">
           <h2 className="mb-2 font-semibold">Attendance summary</h2>

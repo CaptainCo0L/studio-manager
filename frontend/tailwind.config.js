@@ -17,6 +17,20 @@ export default {
         display: ['Fraunces', 'Georgia', 'serif'],
         sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
       },
+      keyframes: {
+        "fade-rise": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        "fade-rise": "fade-rise 0.18s ease-out both",
+        "fade-in": "fade-in 0.18s ease-out both",
+      },
     },
   },
   plugins: [],

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth";
 import Login from "./pages/Login";
@@ -44,50 +45,62 @@ function Pigment() {
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
   const items = NAV.filter((n) => n.roles.includes(user.role));
+
+  const nav = (
+    <nav className="flex flex-col gap-1 text-sm">
+      {items.map((n) => (
+        <NavLink
+          key={n.to}
+          to={n.to}
+          end={n.to === "/"}
+          onClick={() => setOpen(false)}
+          className={({ isActive }) =>
+            `rounded-md px-3 py-2 font-medium transition-colors ${isActive ? "bg-terracotta text-paper" : "text-muted hover:bg-ink/5 hover:text-ink"}`
+          }
+        >
+          {n.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+
+  const sidebar = (
+    <div className="flex h-full w-60 flex-col border-r border-ink/10 bg-paper">
+      <Link to="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 px-5 py-4">
+        <Pigment />
+        <span className="font-display text-xl font-semibold tracking-tight text-clay">Studio Manager</span>
+      </Link>
+      <div className="flex-1 overflow-y-auto px-3">{nav}</div>
+      <div className="border-t border-ink/10 px-4 py-3 text-sm">
+        <div className="mb-2 truncate text-muted">{user.email}</div>
+        <button className="btn-ghost w-full" onClick={() => { logout(); navigate("/login"); }}>Logout</button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-ink/10 bg-paper/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2.5">
-            <Pigment />
-            <span className="font-display text-xl font-semibold tracking-tight text-clay">Studio Manager</span>
-          </Link>
-          <nav className="flex flex-wrap gap-1 text-sm">
-            {items.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                end={n.to === "/"}
-                className={({ isActive }) =>
-                  `rounded-md px-2.5 py-1 font-medium transition-colors ${isActive ? "bg-terracotta text-paper" : "text-muted hover:bg-ink/5 hover:text-ink"}`
-                }
-              >
-                {n.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            <span className="hidden text-muted sm:inline">{user.email}</span>
-            <button
-              className="btn-ghost"
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-          </div>
+    <div className="flex min-h-screen">
+      {/* Desktop sidebar */}
+      <aside className="sticky top-0 hidden h-screen md:block">{sidebar}</aside>
+
+      {/* Mobile drawer */}
+      {open && (
+        <div className="fixed inset-0 z-20 md:hidden">
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="absolute inset-y-0 left-0 h-full">{sidebar}</div>
         </div>
-        <div className="pigment-band" aria-hidden="true">
-          <span className="bg-terracotta" />
-          <span className="bg-ochre" />
-          <span className="bg-sage" />
-          <span className="bg-clay" />
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top bar */}
+        <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden">
+          <button className="btn-ghost px-2 py-1" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
+          <span className="font-display text-lg font-semibold text-clay">Studio Manager</span>
+        </header>
+        <main className="mx-auto w-full max-w-screen-2xl flex-1 px-6 py-8 md:px-8">{children}</main>
+      </div>
     </div>
   );
 }

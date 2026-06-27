@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
@@ -25,12 +26,62 @@ export function useApi(fn, deps = []) {
 
 export function Page({ title, actions, children }) {
   return (
-    <div>
+    <div className="animate-fade-rise">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">{title}</h1>
         <div className="flex gap-2">{actions}</div>
       </div>
       {children}
+    </div>
+  );
+}
+
+export function Card({ hover = false, className = "", children }) {
+  return (
+    <div className={`card ${hover ? "transition hover:-translate-y-0.5 hover:shadow-md" : ""} ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// Gallery tile for browse pages. initial = avatar letter, lines = fact strings,
+// footer = optional action row (rendered below the facts; omit `to` when present).
+export function EntityCard({ to, title, initial, lines = [], badge, footer }) {
+  const inner = (
+    <Card hover={!!to} className="flex h-full gap-3">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-terracotta/15 font-display text-lg font-semibold text-clay" aria-hidden="true">
+        {initial}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="truncate font-medium text-ink">{title}</div>
+          {badge}
+        </div>
+        {lines.map((l, i) => (
+          <div key={i} className="truncate text-sm text-muted">{l}</div>
+        ))}
+        {footer && <div className="mt-2">{footer}</div>}
+      </div>
+    </Card>
+  );
+  return to ? <Link to={to} className="block">{inner}</Link> : inner;
+}
+
+export function Animate({ delay = 0, className = "", children }) {
+  return (
+    <div className={`animate-fade-rise ${className}`} style={delay ? { animationDelay: `${delay}ms` } : undefined}>
+      {children}
+    </div>
+  );
+}
+
+// Wraps each child with an incrementing mount delay for a staggered grid.
+export function Stagger({ children, step = 40, className = "" }) {
+  return (
+    <div className={className}>
+      {React.Children.map(children, (child, i) => (
+        <Animate delay={i * step}>{child}</Animate>
+      ))}
     </div>
   );
 }

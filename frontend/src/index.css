@@ -32,6 +32,10 @@
   .td {
     @apply px-3 py-2.5 text-sm text-ink;
   }
+  /* zebra rows for data tables */
+  tbody tr:nth-child(even) {
+    @apply bg-canvas/30;
+  }
   /* signature: a painter's pigment strip — paint laid out on a palette */
   .pigment-band {
     @apply flex h-1 w-full;

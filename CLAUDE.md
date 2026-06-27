@@ -38,7 +38,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 - `/fees/structures` — create (optional auto-invoice all enrolled students), list.
 - `/fees/invoices` — list (student/unpaid filters), create.
 - `/payments` — list, create (updates invoice balance, emails receipt if guardian email present).
-- `/reports` — `attendance-summary`, `fee-collection`, `tutor-sessions` (counts + private earnings/payouts), `students.csv`, `payments.csv`.
+- `/reports` — `attendance-summary`, `fee-collection`, `tutor-sessions` (counts + private earnings/payouts).
 - `/notifications` — list, send.
 
 ## Notifications
