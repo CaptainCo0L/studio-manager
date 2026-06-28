@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, Card, Stagger, useApi } from "../ui";
+import { Page, Card, EmptyState, Stagger, useApi } from "../ui";
 
 function BatchCard({ batch, allStudents, onEdit, onChanged }) {
   // Roster comes from the /batches list response (no per-card fetch); onChanged
@@ -104,7 +104,11 @@ export default function Batches() {
           ))}
         </Stagger>
       ) : (
-        <div className="card text-sm text-muted">No batches yet.</div>
+        <EmptyState
+          title="No batches yet"
+          hint="Create a batch to group students and mark their attendance."
+          action={<button className="btn" onClick={() => setForm({ name: "", classes_per_week: 1 })}>+ New batch</button>}
+        />
       )}
     </Page>
   );

@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
-import { inr, fmtMonth, fmtDateShort, useApi } from "../ui";
+import { inr, fmtMonth, fmtDateShort, Loading, useApi } from "../ui";
 
 const invNo = (id) => `INV-${String(id).padStart(4, "0")}`;
 
@@ -10,7 +10,7 @@ export default function PaymentInvoice() {
   const studio = useApi(() => api.get("/settings"));
 
   if (pay.error) return <div className="card text-sm text-red-700">{pay.error}</div>;
-  if (!pay.data || !studio.data) return <div className="card text-sm text-muted">Loading…</div>;
+  if (!pay.data || !studio.data) return <Loading />;
 
   const p = pay.data;
   const s = studio.data;

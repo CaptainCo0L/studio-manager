@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, EntityCard, Stagger, inr, useApi } from "../ui";
+import { Page, EntityCard, EmptyState, Stagger, inr, useApi } from "../ui";
 
 export default function Tutors() {
   const list = useApi(() => api.get("/tutors"));
@@ -65,7 +65,11 @@ export default function Tutors() {
           ))}
         </Stagger>
       ) : (
-        <div className="card text-sm text-muted">No tutors yet.</div>
+        <EmptyState
+          title="No tutors yet"
+          hint="Add tutors to assign them to sessions and track payouts."
+          action={<button className="btn" onClick={() => setForm({ name: "" })}>+ New tutor</button>}
+        />
       )}
     </Page>
   );

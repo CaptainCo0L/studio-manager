@@ -2,15 +2,16 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
 import { Page, PAYMENT_METHODS, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 // Attendance is marked on the dedicated Attendance page; this page is session
 // info + edit, plus recording a payment for private/dropin sessions.
 export default function SessionDetail() {
   const { id } = useParams();
+  const toast = useToast();
   const session = useApi(() => api.get(`/sessions/${id}`), [id]);
   const tutors = useApi(() => api.get("/tutors?active_only=true"));
   const batches = useApi(() => api.get("/batches"));
-  const [msg, setMsg] = useState(null);
   const [pay, setPay] = useState({ amount: "", method: "cash" });
   const [edit, setEdit] = useState(null); // edit session details
 
@@ -27,7 +28,7 @@ export default function SessionDetail() {
       notes: edit.notes || null,
     });
     setEdit(null);
-    setMsg("Session updated.");
+    toast.success("Session updated.");
     session.reload();
   }
 
@@ -38,7 +39,7 @@ export default function SessionDetail() {
       method: pay.method,
       session_id: Number(id),
     });
-    setMsg("Payment recorded.");
+    toast.success("Payment recorded.");
     setPay({ amount: "", method: "cash" });
   }
 
@@ -51,7 +52,6 @@ export default function SessionDetail() {
       title={`Session ${s.date}`}
       actions={<button className="btn-ghost" onClick={() => setEdit({ session_type: s.session_type, date: s.date, start_time: s.start_time, end_time: s.end_time, rate: s.rate, tutor_id: s.tutor_id, batch_id: s.batch_id, notes: s.notes })}>Edit</button>}
     >
-      {msg && <div className="mb-3 rounded bg-sage/20 px-3 py-2 text-sm">{msg}</div>}
       {edit ? (
         <form onSubmit={saveSession} className="card mb-4 grid gap-3 md:grid-cols-3">
           <label className="text-sm">Type
