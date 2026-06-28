@@ -40,11 +40,6 @@ def _tutor_figures(db: Session, tutor: Tutor) -> dict:
     }
 
 
-@router.get("/tutor-sessions")
-def tutor_sessions(db: Session = Depends(get_db), _=Depends(require_staff)):
-    return [_tutor_figures(db, t) for t in db.query(Tutor).order_by(Tutor.name).all()]
-
-
 @router.get("/my-earnings")
 def my_earnings(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     if user.role != "tutor":

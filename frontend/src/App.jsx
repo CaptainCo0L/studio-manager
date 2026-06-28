@@ -1,27 +1,30 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Students from "./pages/Students";
-import StudentDetail from "./pages/StudentDetail";
-import Batches from "./pages/Batches";
-import Tutors from "./pages/Tutors";
-import Sessions from "./pages/Sessions";
-import SessionDetail from "./pages/SessionDetail";
-import Attendance from "./pages/Attendance";
-import Payments from "./pages/Payments";
-import PaymentInvoice from "./pages/PaymentInvoice";
-import Users from "./pages/Users";
-import Settings from "./pages/Settings";
-import Account from "./pages/Account";
-import Audit from "./pages/Audit";
 import GlobalSearch from "./components/GlobalSearch";
 import ThemeToggle from "./components/ThemeToggle";
-import MySessions from "./pages/MySessions";
-import TutorSessions from "./pages/TutorSessions";
-import TutorSessionDetail from "./pages/TutorSessionDetail";
-import TutorEarnings from "./pages/TutorEarnings";
+// Login + Dashboard load eagerly (login screen + landing); the rest are
+// route-split so each role only downloads the pages it actually opens.
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+
+const Students = lazy(() => import("./pages/Students"));
+const StudentDetail = lazy(() => import("./pages/StudentDetail"));
+const Batches = lazy(() => import("./pages/Batches"));
+const Tutors = lazy(() => import("./pages/Tutors"));
+const Sessions = lazy(() => import("./pages/Sessions"));
+const SessionDetail = lazy(() => import("./pages/SessionDetail"));
+const Attendance = lazy(() => import("./pages/Attendance"));
+const Payments = lazy(() => import("./pages/Payments"));
+const PaymentInvoice = lazy(() => import("./pages/PaymentInvoice"));
+const Users = lazy(() => import("./pages/Users"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Account = lazy(() => import("./pages/Account"));
+const Audit = lazy(() => import("./pages/Audit"));
+const MySessions = lazy(() => import("./pages/MySessions"));
+const TutorSessions = lazy(() => import("./pages/TutorSessions"));
+const TutorSessionDetail = lazy(() => import("./pages/TutorSessionDetail"));
+const TutorEarnings = lazy(() => import("./pages/TutorEarnings"));
 
 // Nav entries with the roles allowed to see them.
 const NAV = [
@@ -137,6 +140,7 @@ const staff = ["admin", "staff"];
 
 export default function App() {
   return (
+    <Suspense fallback={<div className="p-8 text-muted">Loading…</div>}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<Guard><Dashboard /></Guard>} />
@@ -159,5 +163,6 @@ export default function App() {
       <Route path="/tutor/earnings" element={<Guard roles={["tutor"]}><TutorEarnings /></Guard>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }

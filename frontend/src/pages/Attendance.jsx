@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { Page, useApi } from "../ui";
+import { Page, fmtDate, useApi } from "../ui";
 
 const curMonth = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 const dayOf = (iso) => Number(iso.slice(8, 10));
-const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 
 const CELL = { present: "bg-sage text-white", absent: "bg-red-500 text-white" };
 const key = (sid, sessId) => `${sid}:${sessId}`;

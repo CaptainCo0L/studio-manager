@@ -3,18 +3,18 @@ import { api } from "../api";
 import { Page, Card, Stagger, useApi } from "../ui";
 
 function BatchCard({ batch, allStudents, onEdit, onChanged }) {
-  const enrolled = useApi(() => api.get(`/batches/${batch.id}/students`), [batch.id]);
+  // Roster comes from the /batches list response (no per-card fetch); onChanged
+  // reloads the list, which refreshes this batch's students.
+  const roster = batch.students || [];
 
   async function add(e) {
     const sid = Number(e.target.value);
     if (!sid) return;
     await api.post("/students/enroll", { student_id: sid, batch_id: batch.id });
-    enrolled.reload();
     onChanged();
   }
   async function remove(sid) {
     await api.post("/students/unenroll", { student_id: sid, batch_id: batch.id });
-    enrolled.reload();
     onChanged();
   }
   async function del() {
@@ -23,7 +23,6 @@ function BatchCard({ batch, allStudents, onEdit, onChanged }) {
     onChanged();
   }
 
-  const roster = enrolled.data || [];
   const enrolledIds = new Set(roster.map((s) => s.id));
   const available = (allStudents || []).filter((s) => !enrolledIds.has(s.id));
 

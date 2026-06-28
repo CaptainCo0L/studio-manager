@@ -1,19 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, inr, useApi } from "../ui";
-
-export const fmtMonth = (m) => {
-  if (!m) return "—";
-  const [y, mo] = m.split("-").map(Number);
-  return new Date(y, mo - 1).toLocaleString(undefined, { month: "long", year: "numeric" });
-};
+import { Page, Table, inr, fmtMonth, PAYMENT_METHODS, useApi } from "../ui";
 
 export default function Payments() {
   const navigate = useNavigate();
   const list = useApi(() => api.get("/payments"));
   const students = useApi(() => api.get("/students"));
-  const batches = useApi(() => api.get("/batches"));
   const [form, setForm] = useState(null);
   // Batch options are the selected student's enrolled batches.
   const studentBatches = useApi(
@@ -43,9 +36,6 @@ export default function Payments() {
     }
   }
 
-  const nameOf = (sid) => (students.data || []).find((s) => s.id === sid)?.name || (sid ? `#${sid}` : "—");
-  const batchOf = (bid) => (batches.data || []).find((b) => b.id === bid)?.name || (bid ? `#${bid}` : "—");
-
   return (
     <Page title="Payments" actions={<button className="btn" onClick={() => setForm({ method: "cash" })}>+ Record payment</button>}>
       {form && (
@@ -70,7 +60,7 @@ export default function Payments() {
           </label>
           <label className="text-sm">Method
             <select className="input mt-1" value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
-              {["cash", "card", "upi", "bank_transfer", "other"].map((m) => <option key={m} value={m}>{m}</option>)}
+              {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </label>
           <input className="input self-end" placeholder="Note (optional)" value={form.note || ""} onChange={(e) => setForm({ ...form, note: e.target.value })} />
@@ -84,8 +74,8 @@ export default function Payments() {
       <Table
         columns={[
           { label: "#", sort: (p) => p.id },
-          { label: "Student", sort: (p) => nameOf(p.student_id) },
-          { label: "Batch", sort: (p) => (p.batch_id ? batchOf(p.batch_id) : "") },
+          { label: "Student", sort: (p) => p.student_name || "" },
+          { label: "Batch", sort: (p) => p.batch_name || "" },
           { label: "Month", sort: (p) => p.period_month || "" },
           { label: "Amount", sort: (p) => Number(p.amount) },
           { label: "Method", sort: (p) => p.method },
@@ -97,8 +87,8 @@ export default function Payments() {
         render={(p) => (
           <>
             <td className="td">{p.id}</td>
-            <td className="td">{nameOf(p.student_id)}</td>
-            <td className="td">{p.batch_id ? batchOf(p.batch_id) : p.session_id ? `session #${p.session_id}` : "—"}</td>
+            <td className="td">{p.student_name || "—"}</td>
+            <td className="td">{p.batch_name || (p.session_id ? `session #${p.session_id}` : "—")}</td>
             <td className="td">{p.period_month ? fmtMonth(p.period_month) : "—"}</td>
             <td className="td font-medium">{inr(p.amount)}</td>
             <td className="td">{p.method}</td>

@@ -3,6 +3,18 @@ import { Link } from "react-router-dom";
 
 export const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
+// Shared date/format helpers (previously duplicated across pages).
+export const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+export const fmtDateShort = (d) => String(d).slice(0, 10);
+export const fmtMonth = (m) => {
+  if (!m) return "—";
+  const [y, mo] = m.split("-").map(Number);
+  return new Date(y, mo - 1).toLocaleString(undefined, { month: "long", year: "numeric" });
+};
+export const localISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+export const PAYMENT_METHODS = ["cash", "card", "upi", "bank_transfer", "other"];
+
 // Tiny data-loading hook: runs fn, exposes {data, loading, error, reload}.
 export function useApi(fn, deps = []) {
   const [data, setData] = useState(null);
