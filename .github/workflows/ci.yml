@@ -1,0 +1,14 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Builds the same image the deploy uses, without pushing — fails the PR
+      # if the frontend bundle or backend deps don't build.
+      - run: docker build .
