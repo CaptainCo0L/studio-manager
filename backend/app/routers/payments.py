@@ -25,7 +25,16 @@ def list_payments(
         q = q.filter(Payment.student_id.in_(visible or {-1}))
     if student_id:
         q = q.filter(Payment.student_id == student_id)
-    return q.order_by(Payment.id.desc()).all()
+    payments = q.order_by(Payment.id.desc()).all()
+    # Attach student/batch names in two bulk lookups so the client needn't map ids.
+    sids = {p.student_id for p in payments if p.student_id}
+    bids = {p.batch_id for p in payments if p.batch_id}
+    snames = dict(db.query(Student.id, Student.name).filter(Student.id.in_(sids or {-1})).all())
+    bnames = dict(db.query(Batch.id, Batch.name).filter(Batch.id.in_(bids or {-1})).all())
+    for p in payments:
+        p.student_name = snames.get(p.student_id)
+        p.batch_name = bnames.get(p.batch_id)
+    return payments
 
 
 @router.get("/{payment_id}", response_model=PaymentInvoiceOut)

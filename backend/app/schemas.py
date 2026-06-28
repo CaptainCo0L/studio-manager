@@ -8,6 +8,11 @@ class ORM(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class NameRef(BaseModel):
+    id: int
+    name: str
+
+
 # ---- Auth / Users ----
 class Token(BaseModel):
     access_token: str
@@ -72,6 +77,7 @@ class BatchOut(ORM, BatchBase):
     id: int
     is_active: bool
     student_count: int = 0
+    students: list[NameRef] = []  # populated by list_batches; empty elsewhere
 
 
 # ---- Students ----
@@ -122,10 +128,8 @@ class SessionCreate(SessionBase):
 
 class SessionOut(ORM, SessionBase):
     id: int
-
-
-class GenerateIn(BaseModel):
-    weeks: int = 4
+    batch_name: str | None = None
+    tutor_name: str | None = None
 
 
 # ---- Attendance ----
@@ -151,14 +155,8 @@ class RosterRow(AttendanceOut):
 
 
 # ---- Attendance grid (dedicated Attendance page) ----
-class GridBatch(BaseModel):
-    id: int
-    name: str
-
-
-class GridStudent(BaseModel):
-    id: int
-    name: str
+GridBatch = NameRef
+GridStudent = NameRef
 
 
 class GridSession(BaseModel):
@@ -199,6 +197,8 @@ class PaymentOut(ORM):
     session_id: int | None
     note: str | None
     created_at: datetime
+    student_name: str | None = None
+    batch_name: str | None = None
 
 
 class PaymentInvoiceOut(PaymentOut):

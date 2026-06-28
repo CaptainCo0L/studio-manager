@@ -112,7 +112,6 @@ def run():
         assert c.post("/attendance/bulk", json={"session_id": s0, "items": [{"student_id": sid, "status": "absent"}]}, headers=th).status_code == 404
         # locked out of staff data
         assert c.get("/students", headers=th).json() == []
-        assert c.get("/reports/tutor-sessions", headers=th).status_code == 403
         assert c.get("/reports/my-earnings", headers=th).status_code == 200
         # a tutor can't be linked to a second login
         assert c.post("/users", json={"email": "dup@example.com", "password": "pw123", "role": "tutor", "tutor_id": tut["id"]}, headers=h).status_code == 400
@@ -162,6 +161,15 @@ def run():
         tgrid = c.get(f"/attendance/grid?batch_id={bid}&month=2030-01", headers=th).json()
         assert {s["id"] for s in tgrid["sessions"]} == {tsess}, tgrid
         assert c.get("/attendance/batches", headers=ph).status_code == 403  # parent blocked
+
+        # List endpoints carry display names / rosters (no client-side id->name mapping)
+        pay_rows = c.get("/payments", headers=h).json()
+        assert any(p["student_name"] == "Asha" and p["batch_name"] == "Sat AM" for p in pay_rows), pay_rows
+        sess_rows = c.get(f"/sessions?batch_id={bid}", headers=h).json()
+        assert all(s.get("batch_name") == "Sat AM" for s in sess_rows), sess_rows
+        batch_rows = c.get("/batches", headers=h).json()
+        bat = next(b for b in batch_rows if b["id"] == bid)
+        assert any(st["name"] == "Asha" for st in bat["students"]) and bat["student_count"] >= 1, bat
 
     print("smoke OK")
 

@@ -50,13 +50,6 @@ class Batch(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String)
     classes_per_week: Mapped[int] = mapped_column(Integer, default=1)
-    # Legacy scheduling columns: kept (defaulted/nullable) so old rows load; unused since 2026-06-28.
-    weekly_days: Mapped[str] = mapped_column(String, default="")  # CSV Mon=0..Sun=6
-    start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
-    end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
-    default_tutor_id: Mapped[int | None] = mapped_column(
-        ForeignKey("tutors.id"), nullable=True
-    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -75,8 +68,8 @@ class BatchEnrollment(Base):
     __tablename__ = "batch_enrollments"
     __table_args__ = (UniqueConstraint("student_id", "batch_id"),)
     id: Mapped[int] = mapped_column(primary_key=True)
-    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"))
-    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"))
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
+    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"), index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -97,8 +90,8 @@ class Session(Base):
     start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     rate: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
-    tutor_id: Mapped[int | None] = mapped_column(ForeignKey("tutors.id"), nullable=True)
-    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True)
+    tutor_id: Mapped[int | None] = mapped_column(ForeignKey("tutors.id"), nullable=True, index=True)
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True, index=True)
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
 
 
@@ -106,8 +99,8 @@ class Attendance(Base):
     __tablename__ = "attendance"
     __table_args__ = (UniqueConstraint("session_id", "student_id"),)
     id: Mapped[int] = mapped_column(primary_key=True)
-    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"))
-    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"))
+    session_id: Mapped[int] = mapped_column(ForeignKey("sessions.id"), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id"), index=True)
     status: Mapped[str] = mapped_column(String)  # present|absent
 
 
@@ -119,7 +112,7 @@ class Payment(Base):
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2))
     method: Mapped[str] = mapped_column(String)  # cash|card|upi|bank_transfer|other
-    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True)
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batches.id"), nullable=True, index=True)
     period_month: Mapped[str | None] = mapped_column(String, nullable=True)  # "YYYY-MM"
     session_id: Mapped[int | None] = mapped_column(
         ForeignKey("sessions.id"), nullable=True

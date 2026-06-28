@@ -1,10 +1,12 @@
+from collections import defaultdict
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import require_staff
 from ..models import Batch, BatchEnrollment, Student
-from ..schemas import BatchCreate, BatchOut, StudentOut
+from ..schemas import BatchCreate, BatchOut, NameRef, StudentOut
 
 router = APIRouter(prefix="/batches", tags=["batches"])
 
@@ -22,7 +24,26 @@ def _with_count(db: Session, batch: Batch) -> BatchOut:
 
 @router.get("", response_model=list[BatchOut])
 def list_batches(db: Session = Depends(get_db), _=Depends(require_staff)):
-    return [_with_count(db, b) for b in db.query(Batch).order_by(Batch.name).all()]
+    # Two queries total: all batches, then all active enrollments joined to
+    # students — grouped in-memory so each card has its roster without N+1.
+    batches = db.query(Batch).order_by(Batch.name).all()
+    rows = (
+        db.query(BatchEnrollment.batch_id, Student.id, Student.name)
+        .join(Student, Student.id == BatchEnrollment.student_id)
+        .filter(BatchEnrollment.is_active.is_(True), Student.is_active.is_(True))
+        .order_by(Student.name)
+        .all()
+    )
+    by_batch: dict[int, list[NameRef]] = defaultdict(list)
+    for bid, sid, sname in rows:
+        by_batch[bid].append(NameRef(id=sid, name=sname))
+    out = []
+    for b in batches:
+        o = BatchOut.model_validate(b)
+        o.students = by_batch.get(b.id, [])
+        o.student_count = len(o.students)
+        out.append(o)
+    return out
 
 
 @router.post("", response_model=BatchOut, status_code=201)

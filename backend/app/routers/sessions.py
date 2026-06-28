@@ -1,14 +1,14 @@
-from datetime import date, timedelta
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user, require_staff
-from ..models import Attendance, Batch, BatchEnrollment, Session as ClassSession, User
+from ..models import Attendance, Batch, Session as ClassSession, Tutor, User
 from ..routers.students import _visible_student_ids
 from ..routers.tutors import _visible_tutor_id
-from ..schemas import GenerateIn, SessionCreate, SessionOut
+from ..schemas import SessionCreate, SessionOut
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -46,7 +46,17 @@ def list_sessions(
     if student_id:
         sess_ids = db.query(Attendance.session_id).filter(Attendance.student_id == student_id)
         q = q.filter(ClassSession.id.in_(sess_ids))
-    return q.order_by(ClassSession.date.desc(), ClassSession.id.desc()).all()
+    sessions = q.order_by(ClassSession.date.desc(), ClassSession.id.desc()).all()
+    # Attach batch/tutor names in two bulk lookups (no per-row queries) so the
+    # client doesn't have to fetch all batches/tutors to map ids -> names.
+    bids = {s.batch_id for s in sessions if s.batch_id}
+    tids = {s.tutor_id for s in sessions if s.tutor_id}
+    bnames = dict(db.query(Batch.id, Batch.name).filter(Batch.id.in_(bids or {-1})).all())
+    tnames = dict(db.query(Tutor.id, Tutor.name).filter(Tutor.id.in_(tids or {-1})).all())
+    for s in sessions:
+        s.batch_name = bnames.get(s.batch_id)
+        s.tutor_name = tnames.get(s.tutor_id)
+    return sessions
 
 
 @router.get("/{session_id}", response_model=SessionOut)
@@ -97,46 +107,6 @@ def update_session(session_id: int, payload: SessionCreate, db: Session = Depend
     db.commit()
     db.refresh(sess)
     return sess
-
-
-@router.post("/{batch_id}/generate", response_model=list[SessionOut])
-def generate_sessions(
-    batch_id: int, payload: GenerateIn, db: Session = Depends(get_db), _=Depends(require_staff)
-):
-    batch = db.get(Batch, batch_id)
-    if not batch:
-        raise HTTPException(status_code=404, detail="Batch not found")
-    days = {int(d) for d in batch.weekly_days.split(",") if d.strip() != ""}
-    if not days:
-        raise HTTPException(status_code=400, detail="Batch has no weekly_days set")
-
-    created: list[ClassSession] = []
-    today = date.today()
-    for offset in range(payload.weeks * 7):
-        day = today + timedelta(days=offset)
-        if day.weekday() not in days:
-            continue
-        exists = (
-            db.query(ClassSession)
-            .filter(ClassSession.batch_id == batch_id, ClassSession.date == day)
-            .first()
-        )
-        if exists:
-            continue
-        sess = ClassSession(
-            session_type="batch",
-            date=day,
-            start_time=batch.start_time,
-            end_time=batch.end_time,
-            tutor_id=batch.default_tutor_id,
-            batch_id=batch_id,
-        )
-        db.add(sess)
-        created.append(sess)
-    db.commit()
-    for s in created:
-        db.refresh(s)
-    return created
 
 
 def _get(db: Session, session_id: int) -> ClassSession:
