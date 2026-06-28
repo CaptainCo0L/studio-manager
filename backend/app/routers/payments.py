@@ -89,3 +89,20 @@ def create_payment(payload: PaymentCreate, db: Session = Depends(get_db), _=Depe
                 ),
             )
     return payment
+
+
+@router.put("/{payment_id}", response_model=PaymentOut)
+def update_payment(payment_id: int, payload: PaymentCreate, db: Session = Depends(get_db), _=Depends(require_staff)):
+    p = db.get(Payment, payment_id)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    if payload.method not in VALID_METHODS:
+        raise HTTPException(status_code=400, detail="Invalid payment method")
+    if payload.session_id is None and not (payload.student_id and payload.batch_id and payload.period_month):
+        raise HTTPException(status_code=400, detail="student, batch and month are required")
+    # Edited in place; no receipt re-sent (this is a correction, not a new payment).
+    for k, v in payload.model_dump().items():
+        setattr(p, k, v)
+    db.commit()
+    db.refresh(p)
+    return p

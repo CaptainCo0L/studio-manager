@@ -92,6 +92,20 @@ export default function StudentDetail() {
   const allBatches = useApi(() => api.get("/batches"));
   const calendar = useApi(() => api.get(`/students/${id}/attendance-calendar`), [id]);
   const [batchId, setBatchId] = useState("");
+  const [form, setForm] = useState(null); // edit student details
+
+  async function save(e) {
+    e.preventDefault();
+    await api.put(`/students/${id}`, {
+      name: form.name,
+      guardian_name: form.guardian_name || null,
+      guardian_phone: form.guardian_phone || null,
+      guardian_email: form.guardian_email || null,
+      notes: form.notes || null,
+    });
+    setForm(null);
+    student.reload();
+  }
 
   async function enroll() {
     if (!batchId) return;
@@ -108,13 +122,29 @@ export default function StudentDetail() {
   const s = student.data;
 
   return (
-    <Page title={s.name}>
-      <div className="card">
-        <h2 className="mb-2 font-semibold">Guardian</h2>
-        <p className="text-sm text-ink/70">{s.guardian_name || "—"}</p>
-        <p className="text-sm text-ink/70">{s.guardian_phone || "—"}</p>
-        <p className="text-sm text-ink/70">{s.guardian_email || "—"}</p>
-      </div>
+    <Page
+      title={s.name}
+      actions={<button className="btn-ghost" onClick={() => setForm({ name: s.name, guardian_name: s.guardian_name, guardian_phone: s.guardian_phone, guardian_email: s.guardian_email, notes: s.notes })}>Edit</button>}
+    >
+      {form ? (
+        <form onSubmit={save} className="card mb-4 grid gap-3 md:grid-cols-2">
+          <input className="input" placeholder="Student name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className="input" placeholder="Guardian name" value={form.guardian_name || ""} onChange={(e) => setForm({ ...form, guardian_name: e.target.value })} />
+          <input className="input" placeholder="Guardian phone" value={form.guardian_phone || ""} onChange={(e) => setForm({ ...form, guardian_phone: e.target.value })} />
+          <input className="input" type="email" placeholder="Guardian email" value={form.guardian_email || ""} onChange={(e) => setForm({ ...form, guardian_email: e.target.value })} />
+          <div className="flex gap-2 md:col-span-2">
+            <button className="btn">Update</button>
+            <button type="button" className="btn-ghost" onClick={() => setForm(null)}>Cancel</button>
+          </div>
+        </form>
+      ) : (
+        <div className="card">
+          <h2 className="mb-2 font-semibold">Guardian</h2>
+          <p className="text-sm text-ink/70">{s.guardian_name || "—"}</p>
+          <p className="text-sm text-ink/70">{s.guardian_phone || "—"}</p>
+          <p className="text-sm text-ink/70">{s.guardian_email || "—"}</p>
+        </div>
+      )}
 
       <h2 className="mb-2 mt-6 font-semibold">Batches</h2>
       <div className="card mb-3 flex flex-wrap items-center gap-2">
@@ -127,7 +157,7 @@ export default function StudentDetail() {
       <Table
         columns={[
           { label: "Batch", sort: (b) => b.name },
-          { label: "Days", sort: (b) => b.weekly_days },
+          { label: "Classes/week", sort: (b) => b.classes_per_week },
           "",
         ]}
         rows={enrolled.data || []}
@@ -135,7 +165,7 @@ export default function StudentDetail() {
         render={(b) => (
           <>
             <td className="td font-medium">{b.name}</td>
-            <td className="td">{b.weekly_days || "—"}</td>
+            <td className="td">{b.classes_per_week}× / week</td>
             <td className="td text-right"><button className="text-red-700 hover:underline" onClick={() => unenroll(b.id)}>Unenroll</button></td>
           </>
         )}

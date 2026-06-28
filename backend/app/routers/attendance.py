@@ -1,3 +1,4 @@
+import calendar
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -5,10 +6,19 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import get_current_user
-from ..models import Attendance, BatchEnrollment, Session as ClassSession, Student, User
+from ..models import Attendance, Batch, BatchEnrollment, Session as ClassSession, Student, User
 from ..routers.students import _visible_student_ids
 from ..routers.tutors import _visible_tutor_id
-from ..schemas import AttendanceBulk, AttendanceOut, RosterRow
+from ..schemas import (
+    AttendanceBulk,
+    AttendanceGridOut,
+    AttendanceOut,
+    GridBatch,
+    GridMark,
+    GridSession,
+    GridStudent,
+    RosterRow,
+)
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
@@ -106,3 +116,65 @@ def roster(session_id: int, db: Session = Depends(get_db), user: User = Depends(
                   student_name=names.get(r.student_id, f"#{r.student_id}"))
         for r in rows
     ]
+
+
+# ---- Dedicated Attendance page: review grid (batch × month) ----
+def _require_marker(user: User) -> None:
+    if user.role not in ("admin", "staff", "tutor"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
+@router.get("/batches", response_model=list[GridBatch])
+def grid_batches(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Batches markable by this user: staff see all active; a tutor sees only those they teach."""
+    _require_marker(user)
+    if user.role == "tutor":
+        ids = [
+            b for (b,) in db.query(ClassSession.batch_id)
+            .filter(ClassSession.tutor_id == _visible_tutor_id(db, user), ClassSession.batch_id.isnot(None))
+            .distinct().all()
+        ]
+        batches = db.query(Batch).filter(Batch.id.in_(ids or [-1])).order_by(Batch.name).all()
+    else:
+        batches = db.query(Batch).filter(Batch.is_active.is_(True)).order_by(Batch.name).all()
+    return [GridBatch(id=b.id, name=b.name) for b in batches]
+
+
+@router.get("/grid", response_model=AttendanceGridOut)
+def grid(batch_id: int, month: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Marks for one batch in one month. Tutors see only their own sessions as columns."""
+    _require_marker(user)
+    try:
+        y, m = (int(x) for x in month.split("-"))
+        date_from = date(y, m, 1)
+        date_to = date(y, m, calendar.monthrange(y, m)[1])
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=400, detail="Invalid month (expected YYYY-MM)")
+
+    sess_q = db.query(ClassSession).filter(
+        ClassSession.batch_id == batch_id,
+        ClassSession.date >= date_from,
+        ClassSession.date <= date_to,
+    )
+    if user.role == "tutor":
+        sess_q = sess_q.filter(ClassSession.tutor_id == _visible_tutor_id(db, user))
+    sessions = sess_q.order_by(ClassSession.date, ClassSession.id).all()
+    sess_ids = [s.id for s in sessions]
+
+    students = (
+        db.query(Student)
+        .join(BatchEnrollment, BatchEnrollment.student_id == Student.id)
+        .filter(
+            BatchEnrollment.batch_id == batch_id,
+            BatchEnrollment.is_active.is_(True),
+            Student.is_active.is_(True),
+        )
+        .order_by(Student.name)
+        .all()
+    )
+    marks = db.query(Attendance).filter(Attendance.session_id.in_(sess_ids or [-1])).all()
+    return AttendanceGridOut(
+        students=[GridStudent(id=s.id, name=s.name) for s in students],
+        sessions=[GridSession(id=s.id, date=s.date) for s in sessions],
+        marks=[GridMark(student_id=a.student_id, session_id=a.session_id, status=a.status) for a in marks],
+    )

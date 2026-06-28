@@ -86,6 +86,19 @@ def create_session(payload: SessionCreate, db: Session = Depends(get_db), _=Depe
     return sess
 
 
+@router.put("/{session_id}", response_model=SessionOut)
+def update_session(session_id: int, payload: SessionCreate, db: Session = Depends(get_db), _=Depends(require_staff)):
+    sess = _get(db, session_id)
+    if payload.session_type not in ("batch", "private", "dropin"):
+        raise HTTPException(status_code=400, detail="Invalid session_type")
+    # student_id is only for create-time auto-attendance; ignore on edit.
+    for k, v in payload.model_dump(exclude={"student_id"}).items():
+        setattr(sess, k, v)
+    db.commit()
+    db.refresh(sess)
+    return sess
+
+
 @router.post("/{batch_id}/generate", response_model=list[SessionOut])
 def generate_sessions(
     batch_id: int, payload: GenerateIn, db: Session = Depends(get_db), _=Depends(require_staff)

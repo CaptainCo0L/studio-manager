@@ -61,10 +61,7 @@ class TutorOut(ORM, TutorBase):
 # ---- Batches ----
 class BatchBase(BaseModel):
     name: str
-    weekly_days: str = ""  # CSV "1,3"
-    start_time: time | None = None
-    end_time: time | None = None
-    default_tutor_id: int | None = None
+    classes_per_week: int = Field(default=1, ge=1)
 
 
 class BatchCreate(BatchBase):
@@ -153,6 +150,34 @@ class RosterRow(AttendanceOut):
     student_name: str
 
 
+# ---- Attendance grid (dedicated Attendance page) ----
+class GridBatch(BaseModel):
+    id: int
+    name: str
+
+
+class GridStudent(BaseModel):
+    id: int
+    name: str
+
+
+class GridSession(BaseModel):
+    id: int
+    date: date
+
+
+class GridMark(BaseModel):
+    student_id: int
+    session_id: int
+    status: str
+
+
+class AttendanceGridOut(BaseModel):
+    students: list[GridStudent]
+    sessions: list[GridSession]
+    marks: list[GridMark]
+
+
 # ---- Payments ----
 class PaymentCreate(BaseModel):
     amount: Decimal = Field(gt=0)
@@ -191,6 +216,7 @@ class StudioSettingsOut(ORM):
     address: str | None
     phone: str | None
     email: str | None
+    audit_enabled: bool
 
 
 class StudioSettingsUpdate(BaseModel):
@@ -198,6 +224,7 @@ class StudioSettingsUpdate(BaseModel):
     address: str | None = None
     phone: str | None = None
     email: str | None = None
+    audit_enabled: bool | None = None
 
 
 # ---- Global search ----

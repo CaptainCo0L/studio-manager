@@ -9,9 +9,9 @@ import Batches from "./pages/Batches";
 import Tutors from "./pages/Tutors";
 import Sessions from "./pages/Sessions";
 import SessionDetail from "./pages/SessionDetail";
+import Attendance from "./pages/Attendance";
 import Payments from "./pages/Payments";
 import PaymentInvoice from "./pages/PaymentInvoice";
-import Reports from "./pages/Reports";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import Account from "./pages/Account";
@@ -30,8 +30,8 @@ const NAV = [
   { to: "/batches", label: "Batches", roles: ["admin", "staff"] },
   { to: "/tutors", label: "Tutors", roles: ["admin", "staff"] },
   { to: "/sessions", label: "Sessions", roles: ["admin", "staff"] },
+  { to: "/attendance", label: "Attendance", roles: ["admin", "staff", "tutor"] },
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
-  { to: "/reports", label: "Reports", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
   { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/audit", label: "Audit", roles: ["admin"] },
@@ -146,9 +146,9 @@ export default function App() {
       <Route path="/tutors" element={<Guard roles={staff}><Tutors /></Guard>} />
       <Route path="/sessions" element={<Guard roles={staff}><Sessions /></Guard>} />
       <Route path="/sessions/:id" element={<Guard roles={staff}><SessionDetail /></Guard>} />
+      <Route path="/attendance" element={<Guard roles={["admin", "staff", "tutor"]}><Attendance /></Guard>} />
       <Route path="/payments" element={<Guard roles={staff}><Payments /></Guard>} />
       <Route path="/payments/:id" element={<Guard roles={staff}><PaymentInvoice /></Guard>} />
-      <Route path="/reports" element={<Guard roles={staff}><Reports /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
       <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
       <Route path="/audit" element={<Guard roles={["admin"]}><Audit /></Guard>} />

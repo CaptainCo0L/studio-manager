@@ -1,68 +1,92 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, EntityCard, Stagger, useApi } from "../ui";
+import { Page, Card, Stagger, useApi } from "../ui";
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // index = Mon0..Sun6
+function BatchCard({ batch, allStudents, onEdit, onChanged }) {
+  const enrolled = useApi(() => api.get(`/batches/${batch.id}/students`), [batch.id]);
+
+  async function add(e) {
+    const sid = Number(e.target.value);
+    if (!sid) return;
+    await api.post("/students/enroll", { student_id: sid, batch_id: batch.id });
+    enrolled.reload();
+    onChanged();
+  }
+  async function remove(sid) {
+    await api.post("/students/unenroll", { student_id: sid, batch_id: batch.id });
+    enrolled.reload();
+    onChanged();
+  }
+  async function del() {
+    if (!confirm(`Delete batch "${batch.name}"?`)) return;
+    await api.del(`/batches/${batch.id}`);
+    onChanged();
+  }
+
+  const roster = enrolled.data || [];
+  const enrolledIds = new Set(roster.map((s) => s.id));
+  const available = (allStudents || []).filter((s) => !enrolledIds.has(s.id));
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="font-display text-lg font-semibold text-ink">{batch.name}</div>
+          <div className="text-sm text-muted">{batch.classes_per_week}× per week</div>
+        </div>
+        <div className="flex gap-2 text-sm">
+          <button className="text-terracotta hover:underline" onClick={() => onEdit(batch)}>Edit</button>
+          <button className="text-red-700 hover:underline" onClick={del}>Delete</button>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">Students ({roster.length})</div>
+        {roster.length ? (
+          <ul className="space-y-1">
+            {roster.map((s) => (
+              <li key={s.id} className="flex items-center justify-between text-sm">
+                <span>{s.name}</span>
+                <button className="text-xs text-red-700 hover:underline" onClick={() => remove(s.id)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-sm text-muted">No students linked.</div>
+        )}
+        <select className="input mt-2 text-sm" value="" onChange={add} disabled={!available.length}>
+          <option value="">{available.length ? "+ Add student…" : "All students linked"}</option>
+          {available.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+      </div>
+    </Card>
+  );
+}
 
 export default function Batches() {
   const list = useApi(() => api.get("/batches"));
-  const tutors = useApi(() => api.get("/tutors?active_only=true"));
-  const [form, setForm] = useState(null);
-  const [msg, setMsg] = useState(null);
+  const students = useApi(() => api.get("/students"));
+  const [form, setForm] = useState(null); // { id?, name, classes_per_week }
 
-  function toggleDay(d) {
-    const days = new Set(form.days);
-    days.has(d) ? days.delete(d) : days.add(d);
-    setForm({ ...form, days: [...days].sort() });
-  }
-
-  async function create(e) {
+  async function save(e) {
     e.preventDefault();
-    await api.post("/batches", {
-      name: form.name,
-      weekly_days: form.days.join(","),
-      start_time: form.start_time || null,
-      end_time: form.end_time || null,
-      default_tutor_id: form.default_tutor_id ? Number(form.default_tutor_id) : null,
-    });
+    const body = { name: form.name, classes_per_week: Number(form.classes_per_week) || 1 };
+    if (form.id) await api.put(`/batches/${form.id}`, body);
+    else await api.post("/batches", body);
     setForm(null);
     list.reload();
   }
 
-  async function generate(b) {
-    const weeks = Number(prompt(`Generate sessions for "${b.name}" — how many weeks ahead?`, "4"));
-    if (!weeks) return;
-    const created = await api.post(`/sessions/${b.id}/generate`, { weeks });
-    setMsg(`Created ${created.length} session(s) for ${b.name}.`);
-  }
-
   return (
-    <Page title="Batches" actions={<button className="btn" onClick={() => setForm({ name: "", days: [] })}>+ New batch</button>}>
-      {msg && <div className="mb-3 rounded bg-sage/20 px-3 py-2 text-sm">{msg}</div>}
-
+    <Page title="Batches" actions={<button className="btn" onClick={() => setForm({ name: "", classes_per_week: 1 })}>+ New batch</button>}>
       {form && (
-        <form onSubmit={create} className="card mb-4 space-y-3">
+        <form onSubmit={save} className="card mb-4 grid gap-3 md:grid-cols-2">
           <input className="input" placeholder="Batch name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <div className="flex flex-wrap gap-1">
-            {DAYS.map((d, i) => (
-              <button type="button" key={d} onClick={() => toggleDay(i)}
-                className={`rounded px-2 py-1 text-sm ${form.days.includes(i) ? "bg-terracotta text-white" : "border border-ink/20"}`}>
-                {d}
-              </button>
-            ))}
-          </div>
-          <div className="grid gap-3 md:grid-cols-3">
-            <label className="text-sm">Start <input className="input" type="time" value={form.start_time || ""} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></label>
-            <label className="text-sm">End <input className="input" type="time" value={form.end_time || ""} onChange={(e) => setForm({ ...form, end_time: e.target.value })} /></label>
-            <label className="text-sm">Tutor
-              <select className="input" value={form.default_tutor_id || ""} onChange={(e) => setForm({ ...form, default_tutor_id: e.target.value })}>
-                <option value="">—</option>
-                {(tutors.data || []).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </label>
-          </div>
-          <div className="flex gap-2">
-            <button className="btn">Save</button>
+          <label className="text-sm">Classes per week
+            <input className="input mt-1" type="number" min="1" required value={form.classes_per_week} onChange={(e) => setForm({ ...form, classes_per_week: e.target.value })} />
+          </label>
+          <div className="flex gap-2 md:col-span-2">
+            <button className="btn">{form.id ? "Update" : "Save"}</button>
             <button type="button" className="btn-ghost" onClick={() => setForm(null)}>Cancel</button>
           </div>
         </form>
@@ -71,16 +95,12 @@ export default function Batches() {
       {(list.data || []).length ? (
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(list.data || []).map((b) => (
-            <EntityCard
+            <BatchCard
               key={b.id}
-              initial={(b.name || "?").charAt(0).toUpperCase()}
-              title={b.name}
-              badge={<span className="shrink-0 rounded-full bg-sage/20 px-2 py-0.5 text-xs text-ink/70">{b.student_count} students</span>}
-              lines={[
-                b.weekly_days.split(",").filter(Boolean).map((d) => DAYS[d]).join(", ") || "No days set",
-                b.start_time ? `${b.start_time}–${b.end_time || ""}` : "No time set",
-              ]}
-              footer={<button className="btn-ghost text-sm" onClick={() => generate(b)}>Generate sessions</button>}
+              batch={b}
+              allStudents={students.data || []}
+              onEdit={(batch) => setForm({ id: batch.id, name: batch.name, classes_per_week: batch.classes_per_week })}
+              onChanged={() => list.reload()}
             />
           ))}
         </Stagger>
