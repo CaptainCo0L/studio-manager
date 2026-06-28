@@ -20,66 +20,60 @@ function Marker({ status }) {
   );
 }
 
-function AttendanceCalendar({ items }) {
-  const today = new Date();
-  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
+// Monday (local) that starts the week containing `dateStr` ("YYYY-MM-DD").
+function weekMonday(dateStr) {
+  const d = new Date(dateStr + "T00:00"); // local midnight, no TZ drift
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // back up to Monday
+  return d;
+}
+const isoDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const shortDay = (d) => `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
 
-  const byDate = {};
-  for (const it of items) (byDate[it.date] ||= []).push(it);
-
-  const lead = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // Mon-based offset
-  const days = new Date(view.y, view.m + 1, 0).getDate();
-  const cells = [...Array(lead).fill(null), ...Array.from({ length: days }, (_, i) => i + 1)];
-
-  const step = (delta) => {
-    const m = view.m + delta;
-    setView({ y: view.y + Math.floor(m / 12), m: ((m % 12) + 12) % 12 });
-  };
-  const iso = (d) => `${view.y}-${String(view.m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+function AttendanceWeeks({ items }) {
+  // ponytail: full history, newest-first; add a "show older" cap if a long-running student's list grows unwieldy.
+  const weeks = {};
+  for (const it of items) (weeks[isoDay(weekMonday(it.date))] ||= []).push(it);
+  const keys = Object.keys(weeks).sort().reverse();
 
   return (
     <div className="card">
-      <div className="mb-3 flex items-center justify-between">
-        <button className="btn-ghost px-2.5 py-1" onClick={() => step(-1)} aria-label="Previous month">‹</button>
-        <div className="font-display text-lg font-semibold text-ink">{MONTHS[view.m]} {view.y}</div>
-        <button className="btn-ghost px-2.5 py-1" onClick={() => step(1)} aria-label="Next month">›</button>
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-xs">
-        {WEEKDAYS.map((w) => <div key={w} className="py-1 text-muted">{w}</div>)}
-        {cells.map((d, i) => {
-          const items = d ? byDate[iso(d)] || [] : [];
-          const scheduled = items.some((it) => !it.status);
-          const marked = items.filter((it) => it.status);
-          return (
-            <div
-              key={i}
-              className={`min-h-[4.5rem] rounded-md border p-1 ${
-                !d ? "border-transparent" : scheduled ? "border-ochre/40 bg-ochre/15" : "border-ink/10"
-              }`}
-            >
-              {d && <div className="text-right text-xs text-ink/50">{d}</div>}
-              {marked.length > 0 && (
-                <div className="mt-1 flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                  {marked.map((it) => (
-                    <Link
-                      key={it.session_id}
-                      to={`/sessions/${it.session_id}`}
-                      title={`${it.session_type} — ${it.status}`}
-                      className="hover:opacity-70"
-                    >
-                      <Marker status={it.status} />
-                    </Link>
-                  ))}
-                </div>
-              )}
+      {keys.length === 0 && <p className="text-sm text-muted">No sessions yet.</p>}
+      {keys.map((k) => {
+        const mon = new Date(k + "T00:00");
+        const sun = new Date(mon);
+        sun.setDate(sun.getDate() + 6);
+        const sessions = [...weeks[k]].sort((a, b) => a.date.localeCompare(b.date));
+        const marked = sessions.filter((it) => it.status);
+        const present = marked.filter((it) => it.status === "present").length;
+        return (
+          <div key={k} className="border-b border-ink/10 py-3 last:border-0">
+            <div className="mb-2 flex items-baseline justify-between">
+              <div className="font-display font-semibold text-ink">{shortDay(mon)} – {shortDay(sun)}</div>
+              {marked.length > 0 && <div className="text-xs text-muted">{present}/{marked.length} present</div>}
             </div>
-          );
-        })}
-      </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {sessions.map((it) => {
+                const d = new Date(it.date + "T00:00");
+                return (
+                  <Link
+                    key={it.session_id}
+                    to={`/sessions/${it.session_id}`}
+                    title={`${it.session_type} — ${it.status || "scheduled"}`}
+                    className="flex items-center gap-1.5 hover:opacity-70"
+                  >
+                    <span className="text-xs text-ink/60">{WEEKDAYS[(d.getDay() + 6) % 7]} {d.getDate()}</span>
+                    <Marker status={it.status} />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="flex items-center gap-1"><span className="text-base font-bold text-sage">✓</span> Present</span>
         <span className="flex items-center gap-1"><span className="text-base font-bold text-red-600">✗</span> Absent</span>
-        <span className="flex items-center gap-1"><span className="inline-block h-3 w-4 rounded-sm border border-ochre/40 bg-ochre/15" /> Scheduled</span>
+        <span className="flex items-center gap-1"><span className="text-base font-bold text-ink/40">•</span> Scheduled</span>
       </div>
     </div>
   );
@@ -172,7 +166,7 @@ export default function StudentDetail() {
       />
 
       <h2 className="mb-2 mt-6 font-semibold">Attendance</h2>
-      {calendar.data ? <AttendanceCalendar items={calendar.data} /> : <Loading />}
+      {calendar.data ? <AttendanceWeeks items={calendar.data} /> : <Loading />}
     </Page>
   );
 }
