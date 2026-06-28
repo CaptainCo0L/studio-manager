@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import decode_token
 from .database import Base, SessionLocal, engine
-from .models import AuditLog, User
+from .models import AuditLog, StudioSettings, User
 from .routers import (
     attendance,
     audit,
@@ -63,6 +63,9 @@ async def audit_middleware(request: Request, call_next):
                     user_id = None
             db = SessionLocal()
             try:
+                s = db.get(StudioSettings, 1)
+                if s is not None and not s.audit_enabled:
+                    return response  # auditing turned off
                 if user_id is not None:
                     u = db.get(User, user_id)
                     user_email = u.email if u else f"#{user_id}"

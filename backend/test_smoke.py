@@ -24,12 +24,15 @@ def run():
         h = {"Authorization": f"Bearer {tok['access_token']}"}
         assert c.get("/users/me", headers=h).json()["role"] == "admin"
 
-        bid = c.post("/batches", json={"name": "Sat AM", "weekly_days": "5"}, headers=h).json()["id"]
+        bid = c.post("/batches", json={"name": "Sat AM", "classes_per_week": 2}, headers=h).json()["id"]
+        assert c.get("/batches", headers=h).json()[0]["classes_per_week"] == 2
         sid = c.post("/students", json={"name": "Asha"}, headers=h).json()["id"]
         assert c.post("/students/enroll", json={"student_id": sid, "batch_id": bid}, headers=h).status_code == 201
 
-        gen = c.post(f"/sessions/{bid}/generate", json={"weeks": 2}, headers=h).json()
-        assert len(gen) == 2, gen
+        # Batch sessions are created manually now (no fixed-weekday generation).
+        gen = [c.post("/sessions", json={"session_type": "batch", "date": d, "batch_id": bid}, headers=h).json()
+               for d in ("2030-03-02", "2030-03-09")]
+        assert len(gen) == 2 and all(s.get("id") for s in gen), gen
 
         # Monthly batch payment: student + batch + month required (non-session)
         assert c.post("/payments", json={"amount": 1000, "method": "upi", "student_id": sid}, headers=h).status_code == 400
@@ -130,6 +133,20 @@ def run():
         assert any(r["user_email"] == "admin@example.com" for r in log)
         assert c.get("/audit", headers=ph).status_code == 403  # parent blocked
         assert c.get("/audit", headers=th).status_code == 403  # tutor blocked
+
+        # Edit (PUT) session and payment in place
+        assert c.put(f"/sessions/{s0}", json={"session_type": "batch", "date": "2030-03-02", "batch_id": bid, "notes": "edited"}, headers=h).json()["notes"] == "edited"
+        assert c.put(f"/payments/{pid}", json={"amount": 1500, "method": "cash", "student_id": sid, "batch_id": bid, "period_month": "2026-07"}, headers=h).json()["amount"] == 1500.0
+        assert c.put(f"/payments/{pid}", json={"amount": 1500, "method": "cash", "student_id": sid}, headers=h).status_code == 400  # still requires batch+month
+
+        # Audit on/off toggle: disabling stops new rows, re-enabling resumes
+        n0 = len(c.get("/audit", headers=h).json())
+        c.put("/settings", json={"audit_enabled": False}, headers=h)
+        c.post("/students", json={"name": "Untracked"}, headers=h)
+        assert len(c.get("/audit", headers=h).json()) == n0, "audit rows added while disabled"
+        c.put("/settings", json={"audit_enabled": True}, headers=h)
+        c.post("/students", json={"name": "Tracked Again"}, headers=h)
+        assert len(c.get("/audit", headers=h).json()) > n0, "audit not recording after re-enable"
 
     print("smoke OK")
 

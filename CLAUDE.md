@@ -17,7 +17,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 ## Data model (SQLAlchemy)
 - **User** — login account (admin/staff/parent).
 - **Tutor** — teaching directory, *separate from logins*. `is_guest` = no account. Optional `linked_user_id`, `default_rate`.
-- **Batch** — recurring group: `weekly_days` (Mon=0..Sun=6, CSV e.g. "1,3"), start/end time, `default_tutor_id`.
+- **Batch** — recurring group: `classes_per_week` (int). Sessions are created manually (Sessions page); the day varies week to week. Legacy `weekly_days`/start/end time/`default_tutor_id` columns remain (unused since 2026-06-28).
 - **Student** — guardian name/phone/email. No single class — uses enrollment.
 - **BatchEnrollment** — M:N student↔batch (`is_active`).
 - **ParentLink** — M:N parent-user↔student.
@@ -44,7 +44,7 @@ Handles recurring weekly **batches**, ad-hoc **drop-ins**, and one-on-one **priv
 Pluggable providers. **Email (SMTP)** works once configured. **SMS (Twilio)** + **WhatsApp (Meta Business API)** activate when their `.env` creds are set; otherwise log as `disabled` (no error). Receipt auto-sent on payment when guardian email exists.
 
 ## Frontend pages
-Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance calendar); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Payments + PaymentInvoice (printable); Studio Details (admin); Reports; Users (admin); Audit (admin); global search; dark mode. Parent: MySessions. Tutor: My Sessions (mark attendance), My Earnings. Auth + role guards in `App.jsx`.
+Login; role-aware Dashboard; Students + StudentDetail (enroll/unenroll, attendance calendar); Batches (create, generate sessions); Tutors; Sessions + SessionDetail (mark roster, record private payment); Payments + PaymentInvoice (printable); Studio Details (admin); Users (admin); Audit (admin, with on/off toggle); global search; dark mode. Parent: MySessions. Tutor: My Sessions (mark attendance), My Earnings. Auth + role guards in `App.jsx`.
 
 ## Status
 - Backend: **complete, tested end-to-end** (login, batches, students, sessions, attendance, payments, reports, parent + tutor isolation, audit).

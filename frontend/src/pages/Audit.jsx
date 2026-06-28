@@ -25,8 +25,35 @@ function actionLabel(method, path) {
 
 export default function Audit() {
   const log = useApi(() => api.get("/audit"));
+  const settings = useApi(() => api.get("/settings"));
+  const enabled = settings.data?.audit_enabled ?? true;
+
+  async function toggle() {
+    await api.put("/settings", { audit_enabled: !enabled });
+    settings.reload();
+  }
+
   return (
-    <Page title="Audit log">
+    <Page
+      title="Audit log"
+      actions={
+        <button
+          onClick={toggle}
+          disabled={!settings.data}
+          role="switch"
+          aria-checked={enabled}
+          className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${enabled ? "bg-sage/20 text-ink" : "bg-ink/10 text-muted"}`}
+        >
+          <span className={`inline-block h-2.5 w-2.5 rounded-full ${enabled ? "bg-sage" : "bg-ink/30"}`} />
+          Auditing {enabled ? "on" : "off"}
+        </button>
+      }
+    >
+      {!enabled && (
+        <div className="mb-4 rounded bg-ochre/15 px-3 py-2 text-sm text-clay">
+          Auditing is off — new actions are not being recorded.
+        </div>
+      )}
       <Table
         columns={[
           { label: "When", sort: (r) => r.created_at },

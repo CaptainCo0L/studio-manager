@@ -49,6 +49,8 @@ class Batch(Base):
     __tablename__ = "batches"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String)
+    classes_per_week: Mapped[int] = mapped_column(Integer, default=1)
+    # Legacy scheduling columns: kept (defaulted/nullable) so old rows load; unused since 2026-06-28.
     weekly_days: Mapped[str] = mapped_column(String, default="")  # CSV Mon=0..Sun=6
     start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
@@ -133,6 +135,7 @@ class StudioSettings(Base):
     address: Mapped[str | None] = mapped_column(String, nullable=True)
     phone: Mapped[str | None] = mapped_column(String, nullable=True)
     email: Mapped[str | None] = mapped_column(String, nullable=True)
+    audit_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class AuditLog(Base):
