@@ -29,7 +29,7 @@ class UserOut(ORM):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6)  # reject empty/trivial passwords at create
     role: str = "staff"  # admin|staff|parent|tutor
     student_ids: list[int] = []  # only used for parent accounts
     tutor_id: int | None = None  # only used for tutor accounts
@@ -46,7 +46,7 @@ class PasswordChange(BaseModel):
 
 # ---- Tutors ----
 class TutorBase(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     phone: str | None = None
     email: str | None = None
     is_guest: bool = False
@@ -65,7 +65,7 @@ class TutorOut(ORM, TutorBase):
 
 # ---- Batches ----
 class BatchBase(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     classes_per_week: int = Field(default=1, ge=1)
 
 
@@ -82,7 +82,7 @@ class BatchOut(ORM, BatchBase):
 
 # ---- Students ----
 class StudentBase(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     guardian_name: str | None = None
     guardian_phone: str | None = None
     guardian_email: str | None = None
@@ -116,7 +116,7 @@ class SessionBase(BaseModel):
     date: date
     start_time: time | None = None
     end_time: time | None = None
-    rate: float | None = None
+    rate: float | None = Field(default=None, gt=0)  # private/dropin fee; never ≤0
     tutor_id: int | None = None
     batch_id: int | None = None
     notes: str | None = None

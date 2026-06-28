@@ -1,8 +1,12 @@
+import logging
+
 from sqlalchemy.orm import Session
 
 from .auth import hash_password
 from .config import settings
 from .models import User
+
+log = logging.getLogger("studio")
 
 
 def seed_admin(db: Session) -> None:
@@ -17,3 +21,4 @@ def seed_admin(db: Session) -> None:
         )
     )
     db.commit()
+    log.warning("Seeded first admin %s — log in and change this password now.", settings.admin_email)

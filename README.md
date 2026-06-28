@@ -94,5 +94,23 @@ Pluggable providers, all optional:
 
 ## Schema migrations
 
-Tables are created on startup (`Base.metadata.create_all`) — no migrations yet.
-If the schema starts churning, add Alembic.
+Fresh installs build the schema on startup via `Base.metadata.create_all` — zero
+config, nothing to run. **Alembic** is wired in `backend/` for *schema changes*:
+
+```bash
+cd backend
+alembic revision --autogenerate -m "describe change"   # after editing models
+alembic upgrade head                                    # apply (uses DATABASE_URL)
+```
+
+The `0001_baseline` revision recreates the current schema from the models, so it's
+identical to `create_all` and works on both Postgres and SQLite. On an existing DB
+created by `create_all` (no `alembic_version` table), run `alembic stamp head` once
+before applying future migrations.
+
+## Production secrets
+
+Set `APP_ENV=prod` in `.env` for real deployments: the app then **refuses to boot**
+if `JWT_SECRET` or `ADMIN_PASSWORD` are still the insecure defaults. In split
+deployments (UI and API on different origins) set `CORS_ORIGINS` to the UI origin;
+the default single-image deploy serves both same-origin and needs nothing.

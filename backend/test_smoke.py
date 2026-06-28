@@ -48,8 +48,8 @@ def run():
 
         # Parent isolation
         other = c.post("/api/students", json={"name": "Hidden Kid"}, headers=h).json()
-        c.post("/api/users", json={"email": "parent@example.com", "password": "pw", "role": "parent", "student_ids": [sid]}, headers=h)
-        ptok = c.post("/api/auth/login", data={"username": "parent@example.com", "password": "pw"}).json()
+        c.post("/api/users", json={"email": "parent@example.com", "password": "parentpw", "role": "parent", "student_ids": [sid]}, headers=h)
+        ptok = c.post("/api/auth/login", data={"username": "parent@example.com", "password": "parentpw"}).json()
         ph = {"Authorization": f"Bearer {ptok['access_token']}"}
         assert [s["name"] for s in c.get("/api/students", headers=ph).json()] == ["Asha"]
         assert c.get(f"/api/students/{other['id']}", headers=ph).status_code == 404
@@ -68,6 +68,10 @@ def run():
 
         # Money validation: amounts must be > 0
         assert c.post("/api/payments", json={"amount": -50, "method": "cash"}, headers=h).status_code == 422
+        # Input floors: empty user password, empty name, non-positive session rate all rejected
+        assert c.post("/api/users", json={"email": "x@example.com", "password": "", "role": "staff"}, headers=h).status_code == 422
+        assert c.post("/api/students", json={"name": ""}, headers=h).status_code == 422
+        assert c.post("/api/sessions", json={"session_type": "private", "date": "2030-04-01", "rate": -5}, headers=h).status_code == 422
 
         # Fees stay removed; studio settings are back for the invoice header
         assert c.get("/api/fees/structures", headers=h).status_code == 404
@@ -117,7 +121,7 @@ def run():
         assert c.get("/api/students", headers=th).json() == []
         assert c.get("/api/reports/my-earnings", headers=th).status_code == 200
         # a tutor can't be linked to a second login
-        assert c.post("/api/users", json={"email": "dup@example.com", "password": "pw123", "role": "tutor", "tutor_id": tut["id"]}, headers=h).status_code == 400
+        assert c.post("/api/users", json={"email": "dup@example.com", "password": "dup1234", "role": "tutor", "tutor_id": tut["id"]}, headers=h).status_code == 400
 
         # Global search: staff finds students/batches/tutors; non-staff blocked
         res = c.get("/api/search?q=Asha", headers=h).json()
