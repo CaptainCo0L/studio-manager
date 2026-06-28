@@ -1,9 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
-import { inr, useApi } from "../ui";
-import { fmtMonth } from "./Payments";
+import { inr, fmtMonth, fmtDateShort, useApi } from "../ui";
 
-const fmtDate = (d) => (d ? String(d).slice(0, 10) : "—");
 const invNo = (id) => `INV-${String(id).padStart(4, "0")}`;
 
 export default function PaymentInvoice() {
@@ -38,7 +36,7 @@ export default function PaymentInvoice() {
           <div className="text-right">
             <div className="font-display text-xl font-semibold tracking-wide text-clay">INVOICE</div>
             <div className="mt-1 text-sm text-muted">{invNo(p.id)}</div>
-            <div className="mt-2 text-sm"><span className="text-muted">Date:</span> {fmtDate(p.created_at)}</div>
+            <div className="mt-2 text-sm"><span className="text-muted">Date:</span> {fmtDateShort(p.created_at)}</div>
           </div>
         </div>
 

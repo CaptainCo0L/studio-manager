@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api";
-import { Page, useApi } from "../ui";
+import { Page, PAYMENT_METHODS, useApi } from "../ui";
 
 // Attendance is marked on the dedicated Attendance page; this page is session
 // info + edit, plus recording a payment for private/dropin sessions.
@@ -100,7 +100,7 @@ export default function SessionDetail() {
             <label className="text-sm">Amount (₹) <input className="input" type="number" step="0.01" required value={pay.amount} onChange={(e) => setPay({ ...pay, amount: e.target.value })} /></label>
             <label className="text-sm">Method
               <select className="input" value={pay.method} onChange={(e) => setPay({ ...pay, method: e.target.value })}>
-                {["cash", "card", "upi", "bank_transfer", "other"].map((m) => <option key={m} value={m}>{m}</option>)}
+                {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </label>
             <button className="btn">Record</button>

@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, Card, useApi } from "../ui";
+import { Page, Table, Card, fmtDate, localISO, useApi } from "../ui";
 
-const localISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-
-function SessionCard({ label, badge, emptyText, session, batchName, tutorName }) {
+function SessionCard({ label, badge, emptyText, session }) {
   const chip = <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badge}`}>{label}</span>;
   if (!session) {
     return (
@@ -22,9 +19,9 @@ function SessionCard({ label, badge, emptyText, session, batchName, tutorName })
         {chip}
         <div className="mt-2 font-display text-lg font-semibold text-ink">{fmtDate(session.date)}</div>
         <div className="mt-1 space-y-0.5 text-sm text-muted">
-          <div className="capitalize">{session.session_type}{session.batch_id ? ` · ${batchName(session.batch_id)}` : ""}</div>
+          <div className="capitalize">{session.session_type}{session.batch_name ? ` · ${session.batch_name}` : ""}</div>
           <div>{session.start_time ? `${session.start_time}–${session.end_time || ""}` : "Time not set"}</div>
-          <div>{session.tutor_id ? tutorName(session.tutor_id) : "No tutor"}</div>
+          <div>{session.tutor_name || "No tutor"}</div>
         </div>
       </Card>
     </Link>
@@ -40,9 +37,6 @@ export default function Sessions() {
 
   const qs = Object.entries(filters).filter(([, v]) => v).map(([k, v]) => `${k}=${v}`).join("&");
   const list = useApi(() => api.get(`/sessions?${qs}`), [qs]);
-
-  const batchName = (id) => (batches.data || []).find((b) => b.id === id)?.name || `#${id}`;
-  const tutorName = (id) => (tutors.data || []).find((t) => t.id === id)?.name || `#${id}`;
 
   // Bucket the (date-desc) filtered list into prev / today / next, rest go in the list.
   const rows = list.data || [];
@@ -127,9 +121,9 @@ export default function Sessions() {
       )}
 
       <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <SessionCard label="Previous" badge="bg-ink/10 text-muted" emptyText="No previous session" session={previous} batchName={batchName} tutorName={tutorName} />
-        <SessionCard label="Today" badge="bg-terracotta/15 text-clay" emptyText="No session today" session={current} batchName={batchName} tutorName={tutorName} />
-        <SessionCard label="Next" badge="bg-sage/20 text-ink" emptyText="No upcoming session" session={next} batchName={batchName} tutorName={tutorName} />
+        <SessionCard label="Previous" badge="bg-ink/10 text-muted" emptyText="No previous session" session={previous} />
+        <SessionCard label="Today" badge="bg-terracotta/15 text-clay" emptyText="No session today" session={current} />
+        <SessionCard label="Next" badge="bg-sage/20 text-ink" emptyText="No upcoming session" session={next} />
       </div>
 
       <h2 className="mb-2 font-semibold">All sessions</h2>
@@ -137,7 +131,7 @@ export default function Sessions() {
         columns={[
           { label: "Date", sort: (s) => s.date },
           { label: "Type", sort: (s) => s.session_type },
-          { label: "Batch", sort: (s) => s.batch_id ?? 0 },
+          { label: "Batch", sort: (s) => s.batch_name || "" },
           "",
         ]}
         rows={others}
@@ -146,7 +140,7 @@ export default function Sessions() {
           <>
             <td className="td">{s.date}</td>
             <td className="td capitalize">{s.session_type}</td>
-            <td className="td">{s.batch_id ? batchName(s.batch_id) : "—"}</td>
+            <td className="td">{s.batch_name || "—"}</td>
             <td className="td text-right"><Link className="text-terracotta hover:underline" to={`/sessions/${s.id}`}>Open</Link></td>
           </>
         )}
