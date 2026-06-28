@@ -37,6 +37,9 @@
   --ochre: 217 160 78;
   --ink: 43 37 33;
   --muted: 111 101 87;
+  /* Anchor bare invoice text to the warm palette — otherwise it inherits the
+     app body color, which is light in dark mode and vanishes on the cream sheet. */
+  color: rgb(var(--ink));
 }
 
 @layer base {
