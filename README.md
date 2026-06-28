@@ -6,8 +6,9 @@ Self-hosted management app for an art class — recurring weekly **batches**, ad
 **drop-ins**, and one-on-one **private lessons** (billed per session).
 
 - **Backend:** FastAPI + PostgreSQL, JWT auth, role-based access. Seeds the first admin on boot.
-- **Frontend:** React + Vite + Tailwind (warm canvas / terracotta / sage).
-- **Deploy:** Docker Compose (postgres + backend + frontend).
+- **Frontend:** React + Vite + Tailwind.
+- **Deploy:** Docker Compose — postgres + a single **app** image (FastAPI serves the
+  built UI and the API together on one port; API lives under `/api`).
 
 ## Roles
 
@@ -24,8 +25,8 @@ cp .env.example .env        # then edit secrets
 docker compose up --build
 ```
 
-- Frontend: http://localhost:8080
-- Backend API + docs: http://localhost:8000/docs
+- App (UI + API): http://localhost:8000
+- API docs: http://localhost:8000/docs
 - Log in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env`.
 
 ## Local dev (no Docker)
@@ -56,47 +57,23 @@ TrueNAS SCALE runs Docker workloads. Two common paths:
    `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`).
 4. Map a dataset to the `db_data` volume so the database survives upgrades
    (e.g. `/mnt/tank/apps/studio/db`).
-5. Deploy. Access the frontend on the host's IP at port `8080`.
+5. Deploy. Access the app (UI + API) on the host's IP at port `8000`.
 
-### Option B — Pull prebuilt images
+### Option B — Pull the prebuilt image
 
-Images are published to GHCR by the GitHub Action on every push to `main`:
+A single image is published to GHCR by the GitHub Action on every push to `main`:
 
-- `ghcr.io/<owner>/<repo>-backend:latest`
-- `ghcr.io/<owner>/<repo>-frontend:latest`
+- `ghcr.io/<owner>/<repo>:latest`
 
-Replace the `build:` lines in `docker-compose.yml` with `image:` lines pointing
-at those tags, then deploy as in Option A (no build step needed on the NAS).
-
-### Option C — Run from Docker Hub images
-
-Prebuilt images are published to Docker Hub:
-
-- `captainc00l/studio-manager-backend:latest`
-- `captainc00l/studio-manager-frontend:latest`
-
-Use the ready-made `docker-compose.hub.yml` (pulls these instead of building):
+Use the ready-made `docker-compose.hub.yml` (pulls it instead of building):
 
 ```bash
 cp .env.example .env        # then edit secrets
 docker compose -f docker-compose.hub.yml up -d
 ```
 
-## Publishing / updating the Docker Hub images
-
-The `:latest` tags go stale after you change code. To rebuild and re-push:
-
-```bash
-docker login -u captainc00l            # interactive terminal (not a piped/CI shell)
-docker compose build                   # rebuilds testproject-backend / -frontend
-docker tag testproject-backend:latest  captainc00l/studio-manager-backend:latest
-docker tag testproject-frontend:latest captainc00l/studio-manager-frontend:latest
-docker push captainc00l/studio-manager-backend:latest
-docker push captainc00l/studio-manager-frontend:latest
-```
-
-(The GitHub Action publishes GHCR images automatically — see Option B. The steps
-above are for manual Docker Hub pushes.)
+The GitHub Action rebuilds and republishes `:latest` (and a `:sha-…` tag) on
+every push to `main` — no manual push step needed.
 
 ### Notes
 
@@ -104,7 +81,7 @@ above are for manual Docker Hub pushes.)
   This only happens when there are zero users — change the password after first login.
 - **Backups:** snapshot the dataset backing `db_data`.
 - **HTTPS:** put TrueNAS's built-in reverse proxy (or Traefik/nginx) in front of
-  port 8080 for TLS.
+  port 8000 for TLS.
 
 ## Notifications
 

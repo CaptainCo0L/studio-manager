@@ -11,6 +11,9 @@ __pycache__/
 node_modules/
 dist/
 
+# Built SPA copied into the backend image (and during local verify)
+backend/app/static/
+
 # Claude Code local (per-user) settings
 .claude/settings.local.json
 
