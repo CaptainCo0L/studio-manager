@@ -148,6 +148,21 @@ def run():
         c.post("/students", json={"name": "Tracked Again"}, headers=h)
         assert len(c.get("/audit", headers=h).json()) > n0, "audit not recording after re-enable"
 
+        # Attendance grid (dedicated page)
+        assert any(b["id"] == bid for b in c.get("/attendance/batches", headers=h).json())
+        grid = c.get(f"/attendance/grid?batch_id={bid}&month=2030-03", headers=h).json()
+        assert {s["id"] for s in grid["sessions"]} == {gen[0]["id"], gen[1]["id"]}, grid
+        assert any(st["id"] == sid for st in grid["students"]), grid
+        c.post("/attendance/bulk", json={"session_id": gen[1]["id"], "items": [{"student_id": sid, "status": "absent"}]}, headers=h)
+        grid2 = c.get(f"/attendance/grid?batch_id={bid}&month=2030-03", headers=h).json()
+        assert any(m["student_id"] == sid and m["session_id"] == gen[1]["id"] and m["status"] == "absent" for m in grid2["marks"]), grid2
+        assert c.get(f"/attendance/grid?batch_id={bid}&month=nope", headers=h).status_code == 400
+        # tutor: only their own batch + only their own session as columns
+        assert [b["id"] for b in c.get("/attendance/batches", headers=th).json()] == [bid]
+        tgrid = c.get(f"/attendance/grid?batch_id={bid}&month=2030-01", headers=th).json()
+        assert {s["id"] for s in tgrid["sessions"]} == {tsess}, tgrid
+        assert c.get("/attendance/batches", headers=ph).status_code == 403  # parent blocked
+
     print("smoke OK")
 
 

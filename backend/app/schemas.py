@@ -150,6 +150,34 @@ class RosterRow(AttendanceOut):
     student_name: str
 
 
+# ---- Attendance grid (dedicated Attendance page) ----
+class GridBatch(BaseModel):
+    id: int
+    name: str
+
+
+class GridStudent(BaseModel):
+    id: int
+    name: str
+
+
+class GridSession(BaseModel):
+    id: int
+    date: date
+
+
+class GridMark(BaseModel):
+    student_id: int
+    session_id: int
+    status: str
+
+
+class AttendanceGridOut(BaseModel):
+    students: list[GridStudent]
+    sessions: list[GridSession]
+    marks: list[GridMark]
+
+
 # ---- Payments ----
 class PaymentCreate(BaseModel):
     amount: Decimal = Field(gt=0)
