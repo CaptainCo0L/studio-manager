@@ -39,8 +39,8 @@ export function useApi(fn, deps = []) {
 export function Page({ title, actions, children }) {
   return (
     <div className="animate-fade-rise">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">{title}</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink">{title}</h1>
         <div className="flex gap-2">{actions}</div>
       </div>
       {children}
@@ -50,7 +50,7 @@ export function Page({ title, actions, children }) {
 
 export function Card({ hover = false, className = "", children }) {
   return (
-    <div className={`card ${hover ? "transition hover:-translate-y-0.5 hover:shadow-md" : ""} ${className}`}>
+    <div className={`card ${hover ? "transition-all duration-150 hover:-translate-y-0.5 hover:shadow-card-hover dark:hover:border-terracotta/40" : ""} ${className}`}>
       {children}
     </div>
   );
@@ -94,6 +94,49 @@ export function Stagger({ children, step = 40, className = "" }) {
       {React.Children.map(children, (child, i) => (
         <Animate delay={i * step}>{child}</Animate>
       ))}
+    </div>
+  );
+}
+
+// ---- Loading / empty states ----
+export function Spinner({ className = "h-5 w-5" }) {
+  return (
+    <svg className={`animate-spin text-terracotta ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-90" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Default fallback for useApi-backed pages: a card with a spinner.
+export function Loading({ label = "Loading…", className = "" }) {
+  return (
+    <div className={`card flex items-center gap-3 text-sm text-muted ${className}`} role="status" aria-live="polite">
+      <Spinner className="h-4 w-4" />
+      {label}
+    </div>
+  );
+}
+
+// Shimmer placeholder block for list/table loading.
+export function Skeleton({ className = "" }) {
+  return <div className={`animate-pulse rounded-md bg-ink/10 ${className}`} aria-hidden="true" />;
+}
+
+export function EmptyState({ icon, title, hint, action, className = "" }) {
+  return (
+    <div className={`card flex flex-col items-center justify-center gap-2 py-12 text-center ${className}`}>
+      <div className="text-muted/50">
+        {icon ?? (
+          <svg viewBox="0 0 24 24" className="h-9 w-9" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 7l9-4 9 4-9 4-9-4z" />
+            <path d="M3 7v10l9 4 9-4V7" />
+          </svg>
+        )}
+      </div>
+      <div className="font-semibold text-ink">{title}</div>
+      {hint && <div className="max-w-sm text-sm text-muted">{hint}</div>}
+      {action && <div className="mt-1">{action}</div>}
     </div>
   );
 }
@@ -161,7 +204,7 @@ export function Table({ columns, rows, render, empty = "Nothing here yet.", onRo
           <thead className="bg-canvas/60">
             <tr>
               {cols.map((c, i) => (
-                <th key={i} className={`th ${c.align === "right" ? "text-right" : ""}`}>
+                <th key={i} className={`th whitespace-nowrap ${c.align === "right" ? "text-right" : ""}`}>
                   {c.sort ? (
                     <button
                       type="button"
@@ -184,7 +227,7 @@ export function Table({ columns, rows, render, empty = "Nothing here yet.", onRo
                 <tr
                   key={r.id ?? i}
                   onClick={onRowClick ? () => onRowClick(r) : undefined}
-                  className={`transition-colors hover:bg-canvas/40 ${onRowClick ? "cursor-pointer" : ""}`}
+                  className={`transition-colors hover:bg-terracotta/[0.05] ${onRowClick ? "cursor-pointer" : ""}`}
                 >
                   {render(r)}
                 </tr>

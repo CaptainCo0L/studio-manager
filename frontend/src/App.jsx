@@ -61,7 +61,7 @@ function Layout({ children }) {
   const items = NAV.filter((n) => n.roles.includes(user.role));
 
   const nav = (
-    <nav className="flex flex-col gap-1 text-sm">
+    <nav className="flex flex-col gap-0.5 text-sm">
       {items.map((n) => (
         <NavLink
           key={n.to}
@@ -69,10 +69,15 @@ function Layout({ children }) {
           end={n.to === "/"}
           onClick={() => setOpen(false)}
           className={({ isActive }) =>
-            `rounded-md px-3 py-2 font-medium transition-colors ${isActive ? "bg-terracotta text-white" : "text-muted hover:bg-ink/5 hover:text-ink"}`
+            `relative rounded-lg px-3 py-2 font-medium transition-colors ${isActive ? "bg-terracotta/10 text-terracotta" : "text-muted hover:bg-ink/5 hover:text-ink"}`
           }
         >
-          {n.label}
+          {({ isActive }) => (
+            <>
+              {isActive && <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-terracotta" aria-hidden="true" />}
+              {n.label}
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
@@ -118,7 +123,11 @@ function Layout({ children }) {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
         <header className="flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur md:hidden print:hidden">
-          <button className="btn-ghost px-2 py-1" onClick={() => setOpen(true)} aria-label="Open menu">☰</button>
+          <button className="btn-ghost px-2 py-2" onClick={() => setOpen(true)} aria-label="Open menu">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <span className="font-display text-lg font-semibold text-clay">Studio Manager</span>
         </header>
         <main className="mx-auto w-full max-w-screen-2xl flex-1 px-6 py-8 md:px-8">{children}</main>

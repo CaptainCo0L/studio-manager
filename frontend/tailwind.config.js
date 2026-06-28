@@ -16,8 +16,14 @@ export default {
         muted: "rgb(var(--muted) / <alpha-value>)", // secondary text
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
+        // One grotesk throughout for a clean, modern dashboard feel; display = heavier weight.
+        display: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
         sans: ['"Hanken Grotesk"', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        // Soft, layered elevation for light surfaces (dark mode leans on borders instead).
+        card: "0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06)",
+        "card-hover": "0 4px 12px rgb(15 23 42 / 0.08), 0 2px 4px rgb(15 23 42 / 0.06)",
       },
       keyframes: {
         "fade-rise": {
@@ -28,10 +34,15 @@ export default {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        "toast-in": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         "fade-rise": "fade-rise 0.18s ease-out both",
         "fade-in": "fade-in 0.18s ease-out both",
+        "toast-in": "toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },
