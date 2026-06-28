@@ -3,28 +3,32 @@
 @tailwind utilities;
 
 :root {
-  --canvas: 243 236 223;
-  --paper: 255 253 248;
-  --terracotta: 189 91 61;
-  --clay: 143 63 40;
-  --sage: 126 139 104;
-  --ochre: 217 160 78;
-  --ink: 43 37 33;
-  --muted: 111 101 87;
+  /* Cool modern-SaaS palette. Token names are legacy (terracotta=primary indigo,
+     clay=deep accent, sage=success, ochre=warning) — values swapped, names kept
+     so component classes don't need renaming. */
+  --canvas: 248 250 252; /* slate-50 — app background */
+  --paper: 255 255 255; /* surface */
+  --terracotta: 79 70 229; /* indigo-600 — primary accent / links */
+  --clay: 67 56 202; /* indigo-700 — brand / deep accent */
+  --sage: 22 163 74; /* green-600 — success / present */
+  --ochre: 217 119 6; /* amber-600 — warning / accent */
+  --ink: 15 23 42; /* slate-900 — text + borders */
+  --muted: 100 116 139; /* slate-500 — secondary text */
 }
 
 .dark {
-  --canvas: 29 25 22;
-  --paper: 39 34 31;
-  --terracotta: 205 107 75;
-  --clay: 217 138 106;
-  --sage: 150 165 124;
-  --ochre: 224 168 90;
-  --ink: 236 227 214;
-  --muted: 165 150 132;
+  --canvas: 15 23 42; /* slate-900 */
+  --paper: 30 41 59; /* slate-800 */
+  --terracotta: 129 140 248; /* indigo-400 — lighter for AA on dark surfaces */
+  --clay: 165 180 252; /* indigo-300 */
+  --sage: 74 222 128; /* green-400 */
+  --ochre: 251 191 36; /* amber-400 */
+  --ink: 226 232 240; /* slate-200 */
+  --muted: 148 163 184; /* slate-400 */
 }
 
-/* The printable invoice always renders dark-on-white — on screen and in print, in either theme. */
+/* The printable invoice keeps its own warm, dark-on-cream palette — on screen and
+   in print, in either theme — so it reads as a document, not an app screen. */
 .invoice-sheet {
   --paper: 255 253 248;
   --terracotta: 189 91 61;
@@ -38,36 +42,76 @@
 @layer base {
   body {
     @apply bg-canvas font-sans text-ink antialiased;
+    line-height: 1.5;
   }
   h1,
   h2,
   h3 {
-    @apply font-display;
+    @apply font-display tracking-tight;
+  }
+  ::selection {
+    @apply bg-terracotta/20;
+  }
+  /* Subtle, theme-aware scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--muted) / 0.35) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full;
+    background-color: rgb(var(--muted) / 0.3);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--muted) / 0.5);
   }
 }
 
 @layer components {
+  /* Primary button: fixed indigo background so white text passes WCAG AA in both
+     themes (the --terracotta token lightens in dark for accent text, which would
+     be too light behind white). */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md bg-terracotta px-3.5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-clay focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-card-hover active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta disabled:pointer-events-none disabled:opacity-50;
+    background-color: rgb(79 70 229); /* indigo-600 */
+  }
+  .btn:hover {
+    background-color: rgb(67 56 202); /* indigo-700 */
+  }
+  .dark .btn {
+    background-color: rgb(99 102 241); /* indigo-500 */
+  }
+  .dark .btn:hover {
+    background-color: rgb(79 70 229); /* indigo-600 */
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-md border border-ink/15 bg-paper px-3.5 py-2 text-sm font-medium text-ink transition-colors hover:border-ink/30 hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-ink/15 bg-paper px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition-all hover:border-ink/25 hover:bg-ink/[0.03] active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-terracotta;
+  }
+  .btn-sm {
+    @apply px-2.5 py-1 text-xs;
   }
   .input {
-    @apply w-full rounded-md border border-ink/20 bg-paper px-3 py-2 text-sm text-ink transition-colors placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/20;
+    @apply w-full rounded-lg border border-ink/20 bg-paper px-3 py-2 text-sm text-ink transition-colors placeholder:text-muted/60 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/25;
   }
   .card {
-    @apply rounded-xl border border-ink/10 bg-paper p-4 shadow-sm;
+    @apply rounded-xl border border-ink/10 bg-paper p-4 shadow-card;
+  }
+  /* Dark mode: shadows vanish on dark surfaces — lift comes from a crisper border. */
+  .dark .card {
+    @apply border-ink/15 shadow-none;
   }
   .th {
-    @apply px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted;
+    @apply px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted;
   }
   .td {
     @apply px-3 py-2.5 text-sm text-ink;
   }
   /* zebra rows for data tables */
   tbody tr:nth-child(even) {
-    @apply bg-canvas/30;
+    @apply bg-canvas/40;
   }
   /* signature: a painter's pigment strip — paint laid out on a palette */
   .pigment-band {

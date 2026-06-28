@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { Page, Table, inr, fmtMonth, PAYMENT_METHODS, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 export default function Payments() {
   const navigate = useNavigate();
+  const toast = useToast();
   const list = useApi(() => api.get("/payments"));
   const students = useApi(() => api.get("/students"));
   const [form, setForm] = useState(null);
@@ -24,15 +26,21 @@ export default function Payments() {
       period_month: form.period_month,
       note: form.note || null,
     };
-    if (form.id) {
-      await api.put(`/payments/${form.id}`, body);
-      setForm(null);
-      list.reload();
-    } else {
-      const payment = await api.post("/payments", body);
-      setForm(null);
-      list.reload();
-      navigate(`/payments/${payment.id}`); // open the auto-created invoice
+    try {
+      if (form.id) {
+        await api.put(`/payments/${form.id}`, body);
+        setForm(null);
+        list.reload();
+        toast.success("Payment updated.");
+      } else {
+        const payment = await api.post("/payments", body);
+        setForm(null);
+        list.reload();
+        toast.success("Payment recorded.");
+        navigate(`/payments/${payment.id}`); // open the auto-created invoice
+      }
+    } catch (err) {
+      toast.error(err.message || "Couldn't save payment.");
     }
   }
 

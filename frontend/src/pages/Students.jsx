@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, EntityCard, Stagger, useApi } from "../ui";
+import { Page, EntityCard, EmptyState, Stagger, useApi } from "../ui";
 
 export default function Students() {
   const [search, setSearch] = useState("");
@@ -48,7 +48,11 @@ export default function Students() {
           ))}
         </Stagger>
       ) : (
-        <div className="card text-sm text-muted">No students yet.</div>
+        <EmptyState
+          title="No students yet"
+          hint="Add your first student to start tracking enrolment and attendance."
+          action={<button className="btn" onClick={() => setForm({ name: "" })}>+ New student</button>}
+        />
       )}
     </Page>
   );

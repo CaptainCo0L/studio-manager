@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
-import { Page, Table, useApi } from "../ui";
+import { Page, Table, Loading, useApi } from "../ui";
 
 const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
@@ -172,7 +172,7 @@ export default function StudentDetail() {
       />
 
       <h2 className="mb-2 mt-6 font-semibold">Attendance</h2>
-      {calendar.data ? <AttendanceCalendar items={calendar.data} /> : <div className="card text-sm text-muted">Loading…</div>}
+      {calendar.data ? <AttendanceCalendar items={calendar.data} /> : <Loading />}
     </Page>
   );
 }

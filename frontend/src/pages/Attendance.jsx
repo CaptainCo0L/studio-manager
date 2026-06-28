@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { Page, fmtDate, useApi } from "../ui";
+import { Page, EmptyState, Loading, fmtDate, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 const curMonth = () => {
   const d = new Date();
@@ -8,12 +9,18 @@ const curMonth = () => {
 };
 const dayOf = (iso) => Number(iso.slice(8, 10));
 
-const CELL = { present: "bg-sage text-white", absent: "bg-red-500 text-white" };
+// Tinted cells with colored letters — readable and WCAG-AA in both themes
+// (solid fills + white text fail on the lighter dark-mode greens).
+const CELL = {
+  present: "bg-sage/15 text-sage ring-1 ring-inset ring-sage/30",
+  absent: "bg-red-500/15 text-red-600 ring-1 ring-inset ring-red-500/30 dark:text-red-400",
+};
 const key = (sid, sessId) => `${sid}:${sessId}`;
 // empty -> present -> absent -> present … (never back to empty: no delete endpoint)
 const next = (cur) => (cur === "present" ? "absent" : "present");
 
 export default function Attendance() {
+  const toast = useToast();
   const batches = useApi(() => api.get("/attendance/batches"));
   const [batchId, setBatchId] = useState("");
   const [month, setMonth] = useState(curMonth());
@@ -35,6 +42,7 @@ export default function Attendance() {
     try {
       await api.post("/attendance/bulk", { session_id: sessId, items });
     } catch {
+      toast.error("Couldn't save attendance — reverting.");
       grid.reload(); // revert to server truth
     }
   }
@@ -63,13 +71,13 @@ export default function Attendance() {
       </div>
 
       {!batchId ? (
-        <div className="card text-sm text-muted">Pick a batch to mark attendance.</div>
+        <EmptyState title="Pick a batch" hint="Choose a batch and month to mark attendance." />
       ) : !data ? (
-        <div className="card text-sm text-muted">Loading…</div>
+        <Loading />
       ) : data.sessions.length === 0 ? (
-        <div className="card text-sm text-muted">No sessions for this batch in {month}.</div>
+        <EmptyState title="No sessions this month" hint="There are no sessions for this batch in the selected month." />
       ) : data.students.length === 0 ? (
-        <div className="card text-sm text-muted">No students enrolled in this batch.</div>
+        <EmptyState title="No students enrolled" hint="Enrol students into this batch first." />
       ) : (
         <div className="card overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
@@ -95,7 +103,8 @@ export default function Attendance() {
                         <button
                           onClick={() => toggle(st.id, s.id)}
                           title={fmtDate(s.date)}
-                          className={`h-8 w-8 rounded text-xs font-semibold transition-colors ${status ? CELL[status] : "border border-ink/20 text-ink/30 hover:bg-ink/5"}`}
+                          aria-label={`${st.name} — ${status || "not marked"}`}
+                          className={`h-9 w-9 rounded-md text-sm font-bold transition-colors ${status ? CELL[status] : "border border-ink/20 text-ink/25 hover:border-ink/30 hover:bg-ink/5"}`}
                         >
                           {status === "present" ? "P" : status === "absent" ? "A" : ""}
                         </button>
