@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import FileResponse
 
 from .auth import decode_token
 from .database import Base, SessionLocal, engine
@@ -40,6 +43,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Studio Manager", lifespan=lifespan)
 
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,7 +57,7 @@ async def audit_middleware(request: Request, call_next):
     response = await call_next(request)
     # Record mutations only; never let auditing break the request.
     try:
-        if request.method in AUDIT_METHODS and not request.url.path.startswith("/auth"):
+        if request.method in AUDIT_METHODS and not request.url.path.startswith("/api/auth"):
             user_id, user_email = None, "anonymous"
             authz = request.headers.get("authorization", "")
             if authz.lower().startswith("bearer "):
@@ -96,9 +100,26 @@ for r in (
     settings,
     audit,
 ):
-    app.include_router(r.router)
+    app.include_router(r.router, prefix="/api")
 
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Serve the built SPA (single-image deploy). Only active when the bundle has been
+# copied in (Docker build / local verify); absent in dev + tests, where this is a
+# no-op and the frontend is served by Vite. Registered last, so /api/* and /health win.
+STATIC_DIR = Path(__file__).parent / "static"
+if STATIC_DIR.is_dir():
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        # Unknown API paths must 404 (don't hand an API client the SPA HTML).
+        if full_path == "api" or full_path.startswith("api/"):
+            raise HTTPException(status_code=404)
+        target = (STATIC_DIR / full_path).resolve()
+        # Path-traversal guard: only serve real files inside STATIC_DIR.
+        if full_path and STATIC_DIR in target.parents and target.is_file():
+            return FileResponse(target)
+        return FileResponse(STATIC_DIR / "index.html")
