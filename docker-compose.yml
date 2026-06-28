@@ -13,23 +13,17 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build: ./backend
+  app:
+    build: .
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-studio}:${POSTGRES_PASSWORD:-studio}@db:5432/${POSTGRES_DB:-studio}
     depends_on:
       db:
         condition: service_healthy
+    # Serves both the UI and the API on one port.
     ports:
       - "8000:8000"
-
-  frontend:
-    build: ./frontend
-    depends_on:
-      - backend
-    ports:
-      - "8080:80"
 
 volumes:
   db_data:
