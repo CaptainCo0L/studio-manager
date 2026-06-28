@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../api";
-import { Page, Card, EmptyState, Stagger, useApi } from "../ui";
+import { Page, Card, EmptyState, Stagger, inr, useApi } from "../ui";
 
 function BatchCard({ batch, allStudents, onEdit, onChanged }) {
   // Roster comes from the /batches list response (no per-card fetch); onChanged
@@ -31,7 +31,10 @@ function BatchCard({ batch, allStudents, onEdit, onChanged }) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="font-display text-lg font-semibold text-ink">{batch.name}</div>
-          <div className="text-sm text-muted">{batch.classes_per_week}× per week</div>
+          <div className="text-sm text-muted">
+            {batch.classes_per_week}× per week
+            {batch.monthly_fee != null && ` · ${inr(batch.monthly_fee)}/mo`}
+          </div>
         </div>
         <div className="flex gap-2 text-sm">
           <button className="text-terracotta hover:underline" onClick={() => onEdit(batch)}>Edit</button>
@@ -65,11 +68,16 @@ function BatchCard({ batch, allStudents, onEdit, onChanged }) {
 export default function Batches() {
   const list = useApi(() => api.get("/batches"));
   const students = useApi(() => api.get("/students"));
-  const [form, setForm] = useState(null); // { id?, name, classes_per_week }
+  const [form, setForm] = useState(null); // { id?, name, classes_per_week, monthly_fee }
+  const blank = { name: "", classes_per_week: 1, monthly_fee: "" };
 
   async function save(e) {
     e.preventDefault();
-    const body = { name: form.name, classes_per_week: Number(form.classes_per_week) || 1 };
+    const body = {
+      name: form.name,
+      classes_per_week: Number(form.classes_per_week) || 1,
+      monthly_fee: form.monthly_fee === "" ? null : Number(form.monthly_fee),
+    };
     if (form.id) await api.put(`/batches/${form.id}`, body);
     else await api.post("/batches", body);
     setForm(null);
@@ -77,12 +85,15 @@ export default function Batches() {
   }
 
   return (
-    <Page title="Batches" actions={<button className="btn" onClick={() => setForm({ name: "", classes_per_week: 1 })}>+ New batch</button>}>
+    <Page title="Batches" actions={<button className="btn" onClick={() => setForm(blank)}>+ New batch</button>}>
       {form && (
         <form onSubmit={save} className="card mb-4 grid gap-3 md:grid-cols-2">
           <input className="input" placeholder="Batch name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <label className="text-sm">Classes per week
             <input className="input mt-1" type="number" min="1" required value={form.classes_per_week} onChange={(e) => setForm({ ...form, classes_per_week: e.target.value })} />
+          </label>
+          <label className="text-sm">Monthly fee (₹) — optional
+            <input className="input mt-1" type="number" min="0" step="any" placeholder="e.g. 800" value={form.monthly_fee} onChange={(e) => setForm({ ...form, monthly_fee: e.target.value })} />
           </label>
           <div className="flex gap-2 md:col-span-2">
             <button className="btn">{form.id ? "Update" : "Save"}</button>
@@ -98,7 +109,7 @@ export default function Batches() {
               key={b.id}
               batch={b}
               allStudents={students.data || []}
-              onEdit={(batch) => setForm({ id: batch.id, name: batch.name, classes_per_week: batch.classes_per_week })}
+              onEdit={(batch) => setForm({ id: batch.id, name: batch.name, classes_per_week: batch.classes_per_week, monthly_fee: batch.monthly_fee ?? "" })}
               onChanged={() => list.reload()}
             />
           ))}
@@ -107,7 +118,7 @@ export default function Batches() {
         <EmptyState
           title="No batches yet"
           hint="Create a batch to group students and mark their attendance."
-          action={<button className="btn" onClick={() => setForm({ name: "", classes_per_week: 1 })}>+ New batch</button>}
+          action={<button className="btn" onClick={() => setForm(blank)}>+ New batch</button>}
         />
       )}
     </Page>

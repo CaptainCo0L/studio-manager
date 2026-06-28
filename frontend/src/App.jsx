@@ -17,6 +17,7 @@ const SessionDetail = lazy(() => import("./pages/SessionDetail"));
 const Attendance = lazy(() => import("./pages/Attendance"));
 const Payments = lazy(() => import("./pages/Payments"));
 const PaymentInvoice = lazy(() => import("./pages/PaymentInvoice"));
+const Dues = lazy(() => import("./pages/Dues"));
 const Users = lazy(() => import("./pages/Users"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Account = lazy(() => import("./pages/Account"));
@@ -35,6 +36,7 @@ const NAV = [
   { to: "/sessions", label: "Sessions", roles: ["admin", "staff"] },
   { to: "/attendance", label: "Attendance", roles: ["admin", "staff", "tutor"] },
   { to: "/payments", label: "Payments", roles: ["admin", "staff"] },
+  { to: "/dues", label: "Dues", roles: ["admin", "staff"] },
   { to: "/users", label: "Users", roles: ["admin"] },
   { to: "/settings", label: "Studio Details", roles: ["admin"] },
   { to: "/audit", label: "Audit", roles: ["admin"] },
@@ -162,6 +164,7 @@ export default function App() {
       <Route path="/attendance" element={<Guard roles={["admin", "staff", "tutor"]}><Attendance /></Guard>} />
       <Route path="/payments" element={<Guard roles={staff}><Payments /></Guard>} />
       <Route path="/payments/:id" element={<Guard roles={staff}><PaymentInvoice /></Guard>} />
+      <Route path="/dues" element={<Guard roles={staff}><Dues /></Guard>} />
       <Route path="/users" element={<Guard roles={["admin"]}><Users /></Guard>} />
       <Route path="/settings" element={<Guard roles={["admin"]}><Settings /></Guard>} />
       <Route path="/audit" element={<Guard roles={["admin"]}><Audit /></Guard>} />
