@@ -178,6 +178,23 @@ def run():
         bat = next(b for b in batch_rows if b["id"] == bid)
         assert any(st["name"] == "Asha" for st in bat["students"]) and bat["student_count"] >= 1, bat
 
+        # Dues: a fee-bearing batch surfaces enrolled-but-unpaid students for a month
+        fb = c.post("/api/batches", json={"name": "Fee Batch", "classes_per_week": 1, "monthly_fee": 800}, headers=h).json()
+        assert fb["monthly_fee"] == 800.0, fb
+        fsid = c.post("/api/students", json={"name": "Payer"}, headers=h).json()["id"]
+        c.post("/api/students/enroll", json={"student_id": fsid, "batch_id": fb["id"]}, headers=h)
+        d1 = c.get("/api/reports/dues?month=2026-06", headers=h).json()
+        row = next(r for r in d1["rows"] if r["student_id"] == fsid and r["batch_id"] == fb["id"])
+        assert row["outstanding"] == 800.0 and row["paid"] == 0.0, d1
+        # recording the month's fee clears them from dues
+        c.post("/api/payments", json={"amount": 800, "method": "cash", "student_id": fsid, "batch_id": fb["id"], "period_month": "2026-06"}, headers=h)
+        d2 = c.get("/api/reports/dues?month=2026-06", headers=h).json()
+        assert not any(r["student_id"] == fsid and r["batch_id"] == fb["id"] for r in d2["rows"]), d2
+        # bad month rejected; dues is staff-only
+        assert c.get("/api/reports/dues?month=nope", headers=h).status_code == 400
+        assert c.get("/api/reports/dues?month=2026-06", headers=ph).status_code == 403  # parent
+        assert c.get("/api/reports/dues?month=2026-06", headers=th).status_code == 403  # tutor
+
     print("smoke OK")
 
 

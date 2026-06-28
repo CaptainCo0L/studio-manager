@@ -113,6 +113,22 @@ function TodaysClasses({ batches }) {
   );
 }
 
+function DuesSummary() {
+  const month = todayISO().slice(0, 7); // YYYY-MM
+  const dues = useApi(() => api.get(`/reports/dues?month=${month}`));
+  const d = dues.data || { count: 0, total_outstanding: 0 };
+  return (
+    <Panel title="Outstanding this month" link="/dues">
+      {d.count ? (
+        <div>
+          <div className="font-display text-3xl font-semibold text-clay">{inr(d.total_outstanding)}</div>
+          <div className="text-sm text-muted">{d.count} {d.count === 1 ? "student owes" : "students owe"} fees</div>
+        </div>
+      ) : <p className="text-sm text-muted">No outstanding fees. 🎉</p>}
+    </Panel>
+  );
+}
+
 function AttendanceSnapshot() {
   const att = useApi(() => api.get("/reports/attendance-summary"));
   const d = att.data || {};
@@ -191,6 +207,7 @@ function StaffDashboard() {
       <Animate delay={60} className="mt-6 grid gap-4 lg:grid-cols-2">
         <TodaysClasses batches={batches.data} />
         <AttendanceSnapshot />
+        <DuesSummary />
         <BatchEnrollment batches={batches.data} />
         <RecentPayments students={students.data} />
       </Animate>

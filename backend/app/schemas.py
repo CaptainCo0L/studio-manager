@@ -67,6 +67,7 @@ class TutorOut(ORM, TutorBase):
 class BatchBase(BaseModel):
     name: str = Field(min_length=1)
     classes_per_week: int = Field(default=1, ge=1)
+    monthly_fee: float | None = Field(default=None, ge=0)  # None = not fee-tracked
 
 
 class BatchCreate(BatchBase):
