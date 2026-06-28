@@ -50,6 +50,7 @@ class Batch(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String)
     classes_per_week: Mapped[int] = mapped_column(Integer, default=1)
+    monthly_fee: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
