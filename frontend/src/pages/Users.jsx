@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { api } from "../api";
 import { Page, Table, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 export default function Users() {
   const list = useApi(() => api.get("/users"));
   const students = useApi(() => api.get("/students"));
   const tutors = useApi(() => api.get("/tutors"));
   const [form, setForm] = useState(null);
+  const toast = useToast();
 
   async function create(e) {
     e.preventDefault();
@@ -22,8 +24,13 @@ export default function Users() {
   }
 
   async function toggle(u) {
-    await api.post(`/users/${u.id}/${u.is_active ? "disable" : "enable"}`);
-    list.reload();
+    try {
+      await api.post(`/users/${u.id}/${u.is_active ? "disable" : "enable"}`);
+      toast.success(u.is_active ? "User disabled." : "User enabled.");
+      list.reload();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
 
   return (

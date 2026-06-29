@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { api } from "../api";
 import { Page, EntityCard, EmptyState, Stagger, inr, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 export default function Tutors() {
   const list = useApi(() => api.get("/tutors"));
   const [form, setForm] = useState(null);
+  const toast = useToast();
 
   async function save(e) {
     e.preventDefault();
@@ -22,8 +24,13 @@ export default function Tutors() {
   }
 
   async function deactivate(t) {
-    await api.post(`/tutors/${t.id}/deactivate`);
-    list.reload();
+    try {
+      await api.post(`/tutors/${t.id}/deactivate`);
+      toast.success("Tutor deactivated.");
+      list.reload();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
 
   return (

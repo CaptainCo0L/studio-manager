@@ -32,6 +32,7 @@ async function request(path, { method = "GET", body, form } = {}) {
     const detail = await res.json().catch(() => ({}));
     throw new Error(detail.detail || `Request failed (${res.status})`);
   }
+  if (res.status === 204) return null; // No Content (e.g. DELETE) — nothing to parse
   const ct = res.headers.get("content-type") || "";
   return ct.includes("application/json") ? res.json() : res.text();
 }

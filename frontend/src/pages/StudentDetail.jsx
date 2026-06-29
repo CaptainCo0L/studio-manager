@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Page, Table, Loading, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 const MARK = {
   present: { icon: "✓", word: "", cls: "text-sage" },
@@ -87,6 +88,7 @@ export default function StudentDetail() {
   const calendar = useApi(() => api.get(`/students/${id}/attendance-calendar`), [id]);
   const [batchId, setBatchId] = useState("");
   const [form, setForm] = useState(null); // edit student details
+  const toast = useToast();
 
   async function save(e) {
     e.preventDefault();
@@ -103,13 +105,23 @@ export default function StudentDetail() {
 
   async function enroll() {
     if (!batchId) return;
-    await api.post("/students/enroll", { student_id: Number(id), batch_id: Number(batchId) });
-    setBatchId("");
-    enrolled.reload();
+    try {
+      await api.post("/students/enroll", { student_id: Number(id), batch_id: Number(batchId) });
+      setBatchId("");
+      toast.success("Enrolled.");
+      enrolled.reload();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
   async function unenroll(bid) {
-    await api.post("/students/unenroll", { student_id: Number(id), batch_id: bid });
-    enrolled.reload();
+    try {
+      await api.post("/students/unenroll", { student_id: Number(id), batch_id: bid });
+      toast.success("Unenrolled.");
+      enrolled.reload();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
 
   if (!student.data) return <Page title="Student">{student.error || "Loading…"}</Page>;
