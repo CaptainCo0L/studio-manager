@@ -6,12 +6,7 @@ import { createPortal } from "react-dom";
 const ToastCtx = createContext(() => {});
 export const useToast = () => useContext(ToastCtx);
 
-const STYLE = {
-  success: "border-sage/30 bg-sage/10",
-  error: "border-red-500/30 bg-red-500/10",
-  info: "border-ink/15 bg-paper",
-};
-const ICON_COLOR = { success: "text-sage", error: "text-red-500", info: "text-muted" };
+const ICON_COLOR = { success: "text-sage", error: "text-red-400", info: "text-paper/70" };
 const ICON_PATH = {
   success: "M20 6 9 17l-5-5",
   error: "M18 6 6 18M6 6l12 12",
@@ -39,12 +34,12 @@ export function ToastProvider({ children }) {
     <ToastCtx.Provider value={toast}>
       {children}
       {createPortal(
-        <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-full max-w-xs flex-col gap-2 print:hidden">
+        <div className="pointer-events-none fixed top-4 left-1/2 z-50 flex w-auto max-w-sm -translate-x-1/2 flex-col items-center gap-2 print:hidden">
           {toasts.map((t) => (
             <div
               key={t.id}
               role="status"
-              className={`animate-toast-in pointer-events-auto flex items-start gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm text-ink shadow-card-hover ${STYLE[t.type]}`}
+              className="animate-toast-in pointer-events-auto flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm text-paper shadow-card-hover"
             >
               <svg viewBox="0 0 24 24" className={`mt-0.5 h-4 w-4 shrink-0 ${ICON_COLOR[t.type]}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d={ICON_PATH[t.type]} />

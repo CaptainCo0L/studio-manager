@@ -35,7 +35,7 @@ export default {
           "100%": { opacity: "1" },
         },
         "toast-in": {
-          "0%": { opacity: "0", transform: "translateY(8px) scale(0.98)" },
+          "0%": { opacity: "0", transform: "translateY(-8px) scale(0.98)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
