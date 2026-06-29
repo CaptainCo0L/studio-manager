@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..deps import require_staff
-from ..models import Batch, BatchEnrollment, Student
+from ..models import Batch, BatchEnrollment, Payment, Session, Student
 from ..schemas import BatchCreate, BatchOut, NameRef, StudentOut
 
 router = APIRouter(prefix="/batches", tags=["batches"])
@@ -70,6 +70,28 @@ def update_batch(
 @router.delete("/{batch_id}", status_code=204)
 def delete_batch(batch_id: int, db: Session = Depends(get_db), _=Depends(require_staff)):
     batch = _get(db, batch_id)
+    # Block deletes that would orphan real data (FK has no cascade, so the commit
+    # would otherwise 500). Only *active* enrollments count as "in use" — unenroll
+    # is a soft delete, so removed students leave an inactive row behind that we
+    # clean up below rather than block on.
+    blockers = []
+    n = db.query(BatchEnrollment).filter_by(batch_id=batch_id, is_active=True).count()
+    if n:
+        blockers.append(f"{n} enrolled student(s)")
+    n = db.query(Session).filter_by(batch_id=batch_id).count()
+    if n:
+        blockers.append(f"{n} session(s)")
+    n = db.query(Payment).filter_by(batch_id=batch_id).count()
+    if n:
+        blockers.append(f"{n} payment(s)")
+    if blockers:
+        raise HTTPException(
+            status_code=409,
+            detail="Can't delete: batch still has " + ", ".join(blockers) + ". Remove them first.",
+        )
+    # Drop the dead join rows left by unenroll — they only hold the FK and have no
+    # meaning once the batch is gone.
+    db.query(BatchEnrollment).filter_by(batch_id=batch_id).delete()
     db.delete(batch)
     db.commit()
 

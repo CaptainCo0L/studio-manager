@@ -1,26 +1,43 @@
 import { useState } from "react";
 import { api } from "../api";
 import { Page, Card, EmptyState, Stagger, inr, useApi } from "../ui";
+import { useToast } from "../components/Toast";
 
 function BatchCard({ batch, allStudents, onEdit, onChanged }) {
   // Roster comes from the /batches list response (no per-card fetch); onChanged
   // reloads the list, which refreshes this batch's students.
   const roster = batch.students || [];
+  const toast = useToast();
 
   async function add(e) {
     const sid = Number(e.target.value);
     if (!sid) return;
-    await api.post("/students/enroll", { student_id: sid, batch_id: batch.id });
-    onChanged();
+    try {
+      await api.post("/students/enroll", { student_id: sid, batch_id: batch.id });
+      toast.success("Student added.");
+      onChanged();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
   async function remove(sid) {
-    await api.post("/students/unenroll", { student_id: sid, batch_id: batch.id });
-    onChanged();
+    try {
+      await api.post("/students/unenroll", { student_id: sid, batch_id: batch.id });
+      toast.success("Student removed.");
+      onChanged();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
   async function del() {
     if (!confirm(`Delete batch "${batch.name}"?`)) return;
-    await api.del(`/batches/${batch.id}`);
-    onChanged();
+    try {
+      await api.del(`/batches/${batch.id}`);
+      toast.success("Batch deleted.");
+      onChanged();
+    } catch (err) {
+      toast.error(err.message);
+    }
   }
 
   const enrolledIds = new Set(roster.map((s) => s.id));
